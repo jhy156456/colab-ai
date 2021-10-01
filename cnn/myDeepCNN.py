@@ -1,5 +1,6 @@
 import tensorflow as tf
 import os
+
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # config = tf.ConfigProto()
@@ -11,9 +12,10 @@ sess = tf.compat.v1.Session(config=config)
 import math
 import json
 import sys
-
+import tensorflow as tf
 import keras
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, Flatten, Activation, add
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, Flatten, \
+    Activation, add
 from tensorflow.keras.layers import Dropout, Flatten
 from keras.layers import BatchNormalization
 from tensorflow.keras.models import Model, Sequential
@@ -48,36 +50,35 @@ def build_dataset(data_directory, img_width):
 
 
 def build_model(SHAPE, nb_classes, bn_axis, seed=None):
-
     if seed:
         np.random.seed(seed)
 
     input_layer = Input(shape=SHAPE)
 
     # Step 1
-    x = Conv2D(32, 3, 3, init='glorot_uniform',
-               border_mode='same', activation='relu')(input_layer)
+    x = Conv2D(32, 3, 3, kernel_initializer='glorot_uniform',
+               padding='same', activation='relu')(input_layer)
     # Step 2 - Pooling
     x = MaxPooling2D(pool_size=(2, 2))(x)
 
     # Step 1
-    x = Conv2D(48, 3, 3, init='glorot_uniform', border_mode='same',
+    x = Conv2D(48, 3, 3, kernel_initializer='glorot_uniform', padding='same',
                activation='relu')(x)
     # Step 2 - Pooling
     x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Dropout(0.25)(x)
 
     # Step 1
-    x = Conv2D(64, 3, 3, init='glorot_uniform', border_mode='same',
+    x = Conv2D(64, 3, 3, kernel_initializer='glorot_uniform', padding='same',
                activation='relu')(x)
     # Step 2 - Pooling
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
 
     # Step 1
-    x = Conv2D(96, 3, 3, init='glorot_uniform', border_mode='same',
+    x = Conv2D(96, 3, 3, kernel_initializer='glorot_uniform', padding='same',
                activation='relu')(x)
     # Step 2 - Pooling
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Dropout(0.25)(x)
 
     # Step 3 - Flattening
@@ -85,11 +86,11 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
 
     # Step 4 - Full connection
 
-    x = Dense(output_dim=256, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     # Dropout
     x = Dropout(0.5)(x)
 
-    x = Dense(output_dim=2, activation='softmax')(x)
+    x = Dense(2, activation='softmax')(x)
 
     model = Model(input_layer, x)
 
@@ -164,17 +165,17 @@ def main():
         fp = 1
     if fn == 0:
         fn = 1
-    TPR = float(tp)/(float(tp)+float(fn))
-    FPR = float(fp)/(float(fp)+float(tn))
-    accuracy = round((float(tp) + float(tn))/(float(tp) +
-                                              float(fp) + float(fn) + float(tn)), 3)
-    specitivity = round(float(tn)/(float(tn) + float(fp)), 3)
-    sensitivity = round(float(tp)/(float(tp) + float(fn)), 3)
-    mcc = round((float(tp)*float(tn) - float(fp)*float(fn))/math.sqrt(
-        (float(tp)+float(fp))
-        * (float(tp)+float(fn))
-        * (float(tn)+float(fp))
-        * (float(tn)+float(fn))
+    TPR = float(tp) / (float(tp) + float(fn))
+    FPR = float(fp) / (float(fp) + float(tn))
+    accuracy = round((float(tp) + float(tn)) / (float(tp) +
+                                                float(fp) + float(fn) + float(tn)), 3)
+    specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
+    sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
+    mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
+        (float(tp) + float(fp))
+        * (float(tp) + float(fn))
+        * (float(tn) + float(fp))
+        * (float(tn) + float(fn))
     ), 3)
 
     f_output = open(args.output, 'a')
@@ -229,7 +230,6 @@ def main():
         plt.legend(loc="lower right")
         plt.savefig('ROC AUC.png')
         plt.show()
-
 
     plot_roc(y_pred, Y_test)
 
