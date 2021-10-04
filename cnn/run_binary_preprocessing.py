@@ -12,11 +12,15 @@ symbol = sys.argv[1]
 windows_length = sys.argv[2]
 dimension = sys.argv[3]
 
+# training_start_date = "2000-01-01"
 training_start_date = "2000-01-01"
-training_end_date = "2016-12-31"
+# training_end_date = "2016-12-31"
+training_end_date = "2020-12-31"
 
-testing_start_date = "2017-01-01"
-testing_end_date = "2018-06-14"
+# testing_start_date = "2017-01-01"
+testing_start_date = "2021-01-01"
+# testing_end_date = "2018-06-14"
+testing_end_date = "2021-12-31"
 
 download_data = False
 onlytesting = True
@@ -42,10 +46,11 @@ except Exception as identifier:
 
 try:
     if onlytraining:
+        #일로 들어오는듯
         # create label training
         print('{RED}\nCreate Label Training Data{END}'.format(**formatters))
         subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_training.csv', shell=True)
-        print('{GREEN}Create Label Training Data Done\n{END}!'.format(**formatters))
+        print('{GREEN}Create Label Training Data Done\n{END}'.format(**formatters))
     if onlytesting:
         # create label testing
         print('{RED}\nCreate Label Testing Data{END}'.format(**formatters))
@@ -76,15 +81,15 @@ try:
     if onlytraining:
         # labelling data training
         print('{RED}\nLabelling Training Data{END}'.format(**formatters))
-        print(f'python preproccess_binclass.py -m img2dt -i dataset/{windows_length}_{dimension}/{symbol}/training -lf {symbol}_training_label_{windows_length}.txt')
+        print(f'python preproccess_binclass.py -m img2dt -i dataset/{windows_length}_{dimension}/{symbol}/training -lf ./label/{symbol}_training_label_{windows_length}.txt')
         subprocess.call(
-            f'python preproccess_binclass.py -m img2dt -i dataset/{windows_length}_{dimension}/{symbol}/training -lf {symbol}_training_label_{windows_length}.txt', shell=True)
+            f'python preproccess_binclass.py -m img2dt -i dataset/{windows_length}_{dimension}/{symbol}/training -lf ./label/{symbol}_training_label_{windows_length}.txt', shell=True)
         print('{GREEN}Labelling Training Data Done\n{END}'.format(**formatters))
     if onlytesting:
         # labelling data testing
         print('{RED}\nLabelling Testing Data{END}'.format(**formatters))
         subprocess.call(
-            f'python preproccess_binclass.py -m img2dt -i dataset/{windows_length}_{dimension}/{symbol}/testing -lf {symbol}_testing_label_{windows_length}.txt', shell=True)
+            f'python preproccess_binclass.py -m img2dt -i dataset/{windows_length}_{dimension}/{symbol}/testing -lf ./label/{symbol}_testing_label_{windows_length}.txt', shell=True)
         print('{GREEN}Labelling Testing Data Done\n{END}'.format(**formatters))
 except Exception as identifier:
     print(identifier)

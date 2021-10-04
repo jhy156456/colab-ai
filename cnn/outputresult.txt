@@ -145,3 +145,24 @@ mcc : 0.062
    macro avg       0.53      0.53      0.53       348
 weighted avg       0.55      0.54      0.54       348
 =======
+=======
+50epochs_8batch_cnn
+TN: 118
+FN: 75
+TP: 67
+FP: 88
+TPR: 0.47183098591549294
+FPR: 0.42718446601941745
+accuracy: 0.532
+specitivity: 0.573
+sensitivity : 0.472
+mcc : 0.044
+              precision    recall  f1-score   support
+
+           0       0.61      0.57      0.59       206
+           1       0.43      0.47      0.45       142
+
+    accuracy                           0.53       348
+   macro avg       0.52      0.52      0.52       348
+weighted avg       0.54      0.53      0.53       348
+=======

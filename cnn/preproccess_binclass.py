@@ -60,6 +60,7 @@ def main():
 def image2dataset(input, label_file):
     
     label_dict = {}
+    print("label_file :" ,label_file)
     with open(label_file) as f:
         for line in f:
             (key, val) = line.split(',')
@@ -68,10 +69,11 @@ def image2dataset(input, label_file):
     path = "{}/{}".format(os.getcwd(), input)
 
     for filename in os.listdir(path):
-        # print(filename)
-        # print(os.getcwd())
+        print("filename : ",filename)
+        print("os.getcwd() : ",os.getcwd())
         if filename != '':
             for k, v in label_dict.items():
+                # print(filename)
                 splitname = filename.split("_")
                 f, e = os.path.splitext(filename)
                 # print("[DEBUG] - {}".format(splitname))
@@ -110,36 +112,31 @@ def createLabel(fname, seq_len):
     # remove existing label file
     filename = fname.split('/')
     # print("{} - {}".format(filename[0], filename[1][:-4]))
-    removeOutput("{}_label_{}.txt".format(filename[1][:-4], seq_len))
-
+    removeOutput("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len))
     df = pd.read_csv(fname, parse_dates=True, index_col=0)
     df.fillna(0)
-
     df.reset_index(inplace=True)
     df['Date'] = df['Date'].map(mdates.date2num)
     for i in range(0, len(df)):
-        c = df.iloc[i:i + int(seq_len), :]
-
+        c = df.iloc[i:i + int(seq_len)+1, :]
         starting = 0
         endvalue = 0
         label = ""
-        
-        if len(c) == int(seq_len)+1:  ## 여기서 안나왔겠지. 마지막 부분이. 3450 3449
+        if len(c) == int(seq_len) + 1:
             # starting = c["Close"].iloc[-2]
             starting = c["Open"].iloc[-1]
             endvalue = c["Close"].iloc[-1]
             # print(f'endvalue {endvalue} - starting {starting}')
-            tmp_rtn = endvalue / starting -1
+            tmp_rtn = endvalue / starting - 1
             if tmp_rtn > 0:
                 label = 1
             else:
                 label = 0
 
-            with open("{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
+            with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
     print("Create label finished.")
-
 
 def countImage(input):
     num_file = sum([len(files) for r, d, files in os.walk(input)])
@@ -166,7 +163,9 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
     # for i in range(0, len(df)):
     for i in range(0, len(df)-int(seq_len)):
         # ohlc+volume
-        c = df.iloc[i:i + int(seq_len) - 1, :]
+        c = df.iloc[i:i + int(seq_len), :]
+        # print("c : ",len(c))
+        # print("seq_len",seq_len)
         if len(c) == int(seq_len):
             my_dpi = 96
             fig = plt.figure(figsize=(dimension / my_dpi,

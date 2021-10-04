@@ -4,7 +4,7 @@ import pandas as pd
 import datetime as dt
 from pandas_datareader import data, wb
 import os
-import fix_yahoo_finance as yf
+import yfinance as yf
 import time
 # fixed pandas_datareader can't download from yahoo finance
 yf.pdr_override()
@@ -41,8 +41,10 @@ def main():
                               "../stockdatas/{}_{}.csv".format(ticker, prefix_name))
     elif args.source == "yahoo":
         for ticker in set(args.ticker):
+            # fetch_yahoo_data(ticker, args.start_date, args.end_date,
+            #                  "../stockdatas/{}_{}.csv".format(ticker, prefix_name), args.attempt, args.exist)
             fetch_yahoo_data(ticker, args.start_date, args.end_date,
-                             "../stockdatas/{}_{}.csv".format(ticker, prefix_name), args.attempt, args.exist)
+                             "./stockdatas/{}_{}.csv".format(ticker, prefix_name), args.attempt, args.exist)
 
 
 def fetch_tiingo_data(ticker, start_date, end_date, fname):
@@ -70,6 +72,7 @@ def fetch_yahoo_data(ticker, start_date, end_date, fname, max_attempt, check_exi
             try:
                 dat = data.get_data_yahoo(''.join("{}".format(
                     ticker)),  start=start_date, end=end_date)
+                print("fname : " + fname)
                 dat.to_csv(fname)
             except Exception as e:
                 if attempt < max_attempt - 1:
