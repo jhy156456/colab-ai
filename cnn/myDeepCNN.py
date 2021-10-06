@@ -14,6 +14,7 @@ import json
 import sys
 import tensorflow as tf
 import keras
+
 from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, Flatten, \
     Activation, add
 from tensorflow.keras.layers import Dropout, Flatten
@@ -45,6 +46,7 @@ def build_dataset(data_directory, img_width):
     train_size = sample_count
     print("train size : {}".format(train_size))
     feature = X
+    print(y)
     label = np_utils.to_categorical(y, nb_classes)
     return feature, label, nb_classes
 
@@ -138,7 +140,7 @@ def main():
 
     model = build_model(SHAPE, nb_classes, bn_axis)
 
-    model.compile(optimizer=Adam(lr=1.0e-4),
+    model.compile(optimizer=Adam(learning_rate=1.0e-4),
                   loss='categorical_crossentropy', metrics=['accuracy'])
 
     # Fit the model

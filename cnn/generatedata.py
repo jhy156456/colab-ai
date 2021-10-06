@@ -35,10 +35,9 @@ cre8outputdir(pathdir, targetdir)
 
 counttest = 0
 counttrain = 0
+#원본 데이터 훼손 방지를 위해 별도로 분리한 파일을 학습하는 곳으로 복사한다.
 for root, dirs, files in os.walk("{}/{}".format(pathdir, origindir)):
     for file in files:
-
-
         tmp = root.replace('\\','/')
         tmp_label = tmp.split('/')[-1]
 

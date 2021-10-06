@@ -166,3 +166,87 @@ mcc : 0.044
    macro avg       0.52      0.52      0.52       348
 weighted avg       0.54      0.53      0.53       348
 =======
+=======
+50epochs_8batch_cnn
+TN: 65
+FN: 38
+TP: 26
+FP: 37
+TPR: 0.40625
+FPR: 0.3627450980392157
+accuracy: 0.548
+specitivity: 0.637
+sensitivity : 0.406
+mcc : 0.044
+              precision    recall  f1-score   support
+
+           0       0.63      0.64      0.63       102
+           1       0.41      0.41      0.41        64
+
+    accuracy                           0.55       166
+   macro avg       0.52      0.52      0.52       166
+weighted avg       0.55      0.55      0.55       166
+=======
+=======
+50epochs_8batch_cnn
+TN: 113
+FN: 72
+TP: 1
+FP: 1
+TPR: 0.0136986301369863
+FPR: 0.008771929824561403
+accuracy: 0.61
+specitivity: 0.991
+sensitivity : 0.014
+mcc : 0.023
+              precision    recall  f1-score   support
+
+           0       0.61      1.00      0.76       113
+           1       0.00      0.00      0.00        72
+
+    accuracy                           0.61       185
+   macro avg       0.31      0.50      0.38       185
+weighted avg       0.37      0.61      0.46       185
+=======
+=======
+50epochs_8batch_cnn
+TN: 84
+FN: 60
+TP: 11
+FP: 28
+TPR: 0.15492957746478872
+FPR: 0.25
+accuracy: 0.519
+specitivity: 0.75
+sensitivity : 0.155
+mcc : -0.113
+              precision    recall  f1-score   support
+
+           0       0.58      0.75      0.66       112
+           1       0.28      0.15      0.20        71
+
+    accuracy                           0.52       183
+   macro avg       0.43      0.45      0.43       183
+weighted avg       0.47      0.52      0.48       183
+=======
+=======
+50epochs_8batch_cnn
+TN: 87
+FN: 64
+TP: 7
+FP: 25
+TPR: 0.09859154929577464
+FPR: 0.22321428571428573
+accuracy: 0.514
+specitivity: 0.777
+sensitivity : 0.099
+mcc : -0.16
+              precision    recall  f1-score   support
+
+           0       0.58      0.78      0.66       112
+           1       0.22      0.10      0.14        71
+
+    accuracy                           0.51       183
+   macro avg       0.40      0.44      0.40       183
+weighted avg       0.44      0.51      0.46       183
+=======

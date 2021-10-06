@@ -25,7 +25,7 @@ testing_end_date = "2021-12-31"
 download_data = False
 onlytesting = True
 onlytraining = True
-use_volume = False
+use_volume = True
 
 try:
     if download_data:

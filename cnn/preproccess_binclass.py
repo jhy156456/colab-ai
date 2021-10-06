@@ -69,8 +69,6 @@ def image2dataset(input, label_file):
     path = "{}/{}".format(os.getcwd(), input)
 
     for filename in os.listdir(path):
-        print("filename : ",filename)
-        print("os.getcwd() : ",os.getcwd())
         if filename != '':
             for k, v in label_dict.items():
                 # print(filename)
@@ -118,6 +116,7 @@ def createLabel(fname, seq_len):
     df.reset_index(inplace=True)
     df['Date'] = df['Date'].map(mdates.date2num)
     for i in range(0, len(df)):
+        #수정!!  int(seq_len)+1 ->  int(seq_len)
         c = df.iloc[i:i + int(seq_len)+1, :]
         starting = 0
         endvalue = 0
@@ -163,9 +162,8 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
     # for i in range(0, len(df)):
     for i in range(0, len(df)-int(seq_len)):
         # ohlc+volume
+        # 수정!!  int(seq_len)-1
         c = df.iloc[i:i + int(seq_len), :]
-        # print("c : ",len(c))
-        # print("seq_len",seq_len)
         if len(c) == int(seq_len):
             my_dpi = 96
             fig = plt.figure(figsize=(dimension / my_dpi,
