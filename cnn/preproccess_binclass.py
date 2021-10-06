@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import matplotlib.dates as mdates
 import glob
 import argparse
@@ -12,7 +14,7 @@ from pathlib import Path
 
 # https://github.com/matplotlib/mpl_finance
 # from mpl_finance import candlestick2_ochl, volume_overlay
-from mplfinance.original_flavor  import candlestick2_ochl, volume_overlay
+from mplfinance.original_flavor import candlestick2_ochl, volume_overlay
 
 
 def isnan(value):
@@ -24,7 +26,7 @@ def isnan(value):
 
 
 def removeOutput(finput):
-    if(Path(finput)).is_file():
+    if (Path(finput)).is_file():
         os.remove(finput)
 
 
@@ -58,14 +60,13 @@ def main():
 
 
 def image2dataset(input, label_file):
-    
     label_dict = {}
-    print("label_file :" ,label_file)
+    print("label_file :", label_file)
     with open(label_file) as f:
         for line in f:
             (key, val) = line.split(',')
             label_dict[key] = val.rstrip()
-    
+
     path = "{}/{}".format(os.getcwd(), input)
 
     for filename in os.listdir(path):
@@ -116,8 +117,8 @@ def createLabel(fname, seq_len):
     df.reset_index(inplace=True)
     df['Date'] = df['Date'].map(mdates.date2num)
     for i in range(0, len(df)):
-        #수정!!  int(seq_len)+1 ->  int(seq_len)
-        c = df.iloc[i:i + int(seq_len)+1, :]
+        # 수정!!  int(seq_len)+1 ->  int(seq_len)
+        c = df.iloc[i:i + int(seq_len) + 1, :]
         starting = 0
         endvalue = 0
         label = ""
@@ -125,7 +126,7 @@ def createLabel(fname, seq_len):
             # starting = c["Close"].iloc[-2]
             starting = c["Open"].iloc[-1]
             endvalue = c["Close"].iloc[-1]
-            # print(f'endvalue {endvalue} - starting {starting}')
+            print(f'endvalue {endvalue} - starting {starting}')
             tmp_rtn = endvalue / starting - 1
             if tmp_rtn > 0:
                 label = 1
@@ -136,6 +137,7 @@ def createLabel(fname, seq_len):
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
     print("Create label finished.")
+
 
 def countImage(input):
     num_file = sum([len(files) for r, d, files in os.walk(input)])
@@ -152,46 +154,58 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
     path = "{}".format(os.getcwd())
     # print(path)
     if not os.path.exists("{}/dataset/{}_{}/{}/{}".format(path, seq_len, dimension, symbol, dataset_type)):
-        os.makedirs("{}/dataset/{}_{}/{}/{}".format(path,seq_len, dimension, symbol, dataset_type))
+        os.makedirs("{}/dataset/{}_{}/{}/{}".format(path, seq_len, dimension, symbol, dataset_type))
 
     df = pd.read_csv(fname, parse_dates=True, index_col=0)
     df.fillna(0)
     plt.style.use('dark_background')
     df.reset_index(inplace=True)
     df['Date'] = df['Date'].map(mdates.date2num)
+    # gs = gridspec.GridSpec(nrows=2,ncols=1,height_ratios=[3,1])
     # for i in range(0, len(df)):
-    for i in range(0, len(df)-int(seq_len)):
+    for i in range(0, len(df) - int(seq_len)):
         # ohlc+volume
         # 수정!!  int(seq_len)-1
         c = df.iloc[i:i + int(seq_len), :]
         if len(c) == int(seq_len):
             my_dpi = 96
-            fig = plt.figure(figsize=(dimension / my_dpi,
-                                      dimension / my_dpi), dpi=my_dpi)
-            ax1 = fig.add_subplot(1, 1, 1)
-            candlestick2_ochl(ax1, c['Open'], c['Close'], c['High'],c['Low'],
-                              width=1,colorup='#77d879', colordown='#db3f3f')
-            ax1.grid(False)
-            ax1.set_xticklabels([])
-            ax1.set_yticklabels([])
-            ax1.xaxis.set_visible(False)
-            ax1.yaxis.set_visible(False)
-            ax1.axis('off')
+            value = dimension / my_dpi
+            fig = plt.figure(figsize=(value,
+                                      value), dpi=my_dpi)
+            # ax1 = fig.add_subplot(1, 1, 1)
+            # ax1 = fig.subplot2_grid(gs[0])
+            top_axes = plt.subplot2grid((4, 4), (0, 0), rowspan=3, colspan=4)
+            bottom_axes = plt.subplot2grid((4, 4), (3, 0), rowspan=1, colspan=4, sharex=top_axes)
+
+            candlestick2_ochl(top_axes, c['Open'], c['Close'], c['High'], c['Low'],
+                              width=1, colorup='#77d879', colordown='#db3f3f')
+            top_axes.grid(False)
+            top_axes.set_xticklabels([])
+            top_axes.set_yticklabels([])
+            top_axes.xaxis.set_visible(False)
+            top_axes.yaxis.set_visible(False)
+            top_axes.axis('off')
 
             # create the second axis for the volume bar-plot
             # Add a seconds axis for the volume overlay
             if use_volume:
-                ax2 = ax1.twinx()
+                # ax2 = ax1.twinx()
+
+                # ax2 = fig.add_subplot(gs[1])
+                # ax2 = ax1.twinx()
+
+
+
                 # Plot the volume overlay
-                bc = volume_overlay(ax2, c['Open'], c['Close'], c['Volume'],
+                bc = volume_overlay(bottom_axes, c['Open'], c['Close'], c['Volume'],
                                     colorup='#77d879', colordown='#db3f3f', alpha=0.5, width=1)
-                ax2.add_collection(bc)
-                ax2.grid(False)
-                ax2.set_xticklabels([])
-                ax2.set_yticklabels([])
-                ax2.xaxis.set_visible(False)
-                ax2.yaxis.set_visible(False)
-                ax2.axis('off')
+                bottom_axes.add_collection(bc)
+                bottom_axes.grid(False)
+                bottom_axes.set_xticklabels([])
+                bottom_axes.set_yticklabels([])
+                bottom_axes.xaxis.set_visible(False)
+                bottom_axes.yaxis.set_visible(False)
+                bottom_axes.axis('off')
             pngfile = 'dataset/{}_{}/{}/{}/{}-{}.png'.format(
                 seq_len, dimension, symbol, dataset_type, fname[11:-4], i)
             fig.savefig(pngfile, pad_inches=0, transparent=False)
