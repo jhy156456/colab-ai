@@ -58,6 +58,8 @@ def main():
     if args.mode == 'countImg':
         countImage(args.input)
 
+#학습 데이터를 종목 코드별로 폴더로 옮기는 작업
+#dataset/day_width 폴더 파일에 있는것들을 추가 폴더를 생성하여 안에다 집어넣는 작업인듯
 
 def image2dataset(input, label_file):
     label_dict = {}
@@ -118,19 +120,28 @@ def createLabel(fname, seq_len):
     df['Date'] = df['Date'].map(mdates.date2num)
     for i in range(0, len(df)):
         # 수정!!  int(seq_len)+1 ->  int(seq_len)
+
+        #1일~seq_len+1 일치 데이터프레임 획득
         c = df.iloc[i:i + int(seq_len) + 1, :]
         starting = 0
         endvalue = 0
         label = ""
         if len(c) == int(seq_len) + 1:
             # starting = c["Close"].iloc[-2]
+            # study : iloc[-1] : # 마지막 행만
+
+            #seq_len +1 일치 시초가, 종가
             starting = c["Open"].iloc[-1]
             endvalue = c["Close"].iloc[-1]
-            print(f'endvalue {endvalue} - starting {starting}')
+            # print("*******")
+            # print(f'endvalue {endvalue} - starting {starting}')
+            # print("*******")
             tmp_rtn = endvalue / starting - 1
             if tmp_rtn > 0:
+                #상승
                 label = 1
             else:
+                #하락
                 label = 0
 
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:

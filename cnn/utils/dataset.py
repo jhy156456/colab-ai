@@ -12,6 +12,7 @@ from matplotlib.pyplot import imread
 
 def dataset(base_dir, n):
     print("base_dir : {}, n : {}".format(base_dir, n))
+    #base_dir : "dataset/dataset_272210.KS_{day}_{image_dimension}"
     d = defaultdict(list)
     for root, subdirs, files in os.walk(base_dir):
         print('root :', root)
@@ -39,7 +40,7 @@ def dataset(base_dir, n):
     for class_index, class_name in enumerate(tags):
         filenames = d[class_name]
         for filename in filenames:
-            print('filename :: ', filename)
+            # print('filename :: ', filename)
 #             img = scipy.misc.imread(filename) # 없어짐.
             img = imread(filename)
             height, width, chan = img.shape

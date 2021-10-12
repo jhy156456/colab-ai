@@ -38,6 +38,7 @@ from datetime import timedelta
 
 def build_dataset(data_directory, img_width):
     # X, y, tags = dataset.dataset(data_directory, int(img_width))
+    # data_directory : dataset/dataset_272210.KS_{day}_{image_dimension}
     X, y, tags = dataset(data_directory, int(img_width))
     print(len(tags))
     nb_classes = len(tags)
@@ -132,6 +133,7 @@ def main():
     data_directory = args.input
 
     print("loading dataset")
+    # data_directory : dataset/dataset_272210.KS_{day}_{image_dimension}
     X_train, Y_train, nb_classes = build_dataset(
         "{}/train".format(data_directory), args.dimension)
     X_test, Y_test, nb_classes = build_dataset(

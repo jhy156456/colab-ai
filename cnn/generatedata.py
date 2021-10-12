@@ -37,7 +37,11 @@ counttest = 0
 counttrain = 0
 #원본 데이터 훼손 방지를 위해 별도로 분리한 파일을 학습하는 곳으로 복사한다.
 for root, dirs, files in os.walk("{}/{}".format(pathdir, origindir)):
+    print("pathdir : " ,pathdir)
+    print("origindir : ", origindir)
     for file in files:
+        print("file : ",file)
+
         tmp = root.replace('\\','/')
         tmp_label = tmp.split('/')[-1]
 
@@ -68,5 +72,5 @@ for root, dirs, files in os.walk("{}/{}".format(pathdir, origindir)):
                 copyfile(origin, destination)
                 counttrain += 1
 
-print(counttest)
-print(counttrain)
+print("counttest : " , counttest)
+print("counttrain : " , counttrain)
