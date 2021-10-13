@@ -22,11 +22,11 @@ def dataset(base_dir, n):
         # for filename in subdirs:
         for filename in files:
             file_path = os.path.join(root, filename)
-            print(' ok :', file_path)
+            # print(' ok :', file_path)
 
             assert file_path.startswith(base_dir)
             suffix = file_path[len(base_dir):]
-            print('suffix : ', suffix)
+            # print('suffix : ', suffix)
             suffix = suffix.lstrip("\\")
             label = suffix.split("\\")[0]
             d[label].append(file_path)

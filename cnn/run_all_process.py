@@ -1,10 +1,10 @@
 import subprocess
-day="5"
-epochs = "30"
-#epochs를 20으로 하면 오류가 나네..?
-image_dimension = "100"
-batch_size = "8"
 stock_code = "272210.KS"
+day="5"
+image_dimension = "100"
+epochs = "10"
+#epochs를 20으로 하면 오류가 나네..?
+batch_size = "8"
 try:
     #  read_csv :  stockdatas/BBNI.JK_testing.csv
 
@@ -25,11 +25,11 @@ try:
 
 
     #원본 데이터 훼손 방지를 위해 별도로 분리한 파일을 학습하는 곳으로 복사한다.
-    print(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ')
-    subprocess.call(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ', shell=True)
+    # print(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ')
+    # subprocess.call(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ', shell=True)
 
-    # print(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
-    # subprocess.call(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"', shell=True)
+    print(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
+    subprocess.call(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"', shell=True)
 
 except Exception as identifier:
     print(identifier)

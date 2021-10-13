@@ -1,15 +1,12 @@
-import pandas as pd
-import numpy as np
 import matplotlib
+import pandas as pd
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import matplotlib.dates as mdates
-import glob
 import argparse
 import os
-from shutil import copyfile, move
+from shutil import move
 from pathlib import Path
 
 # https://github.com/matplotlib/mpl_finance
@@ -59,23 +56,29 @@ def main():
         countImage(args.input)
 
 #학습 데이터를 종목 코드별로 폴더로 옮기는 작업
-#dataset/day_width 폴더 파일에 있는것들을 추가 폴더를 생성하여 안에다 집어넣는 작업인듯
-
 def image2dataset(input, label_file):
+    # input : dataset/{windows_length}_{dimension}/{symbol}/testing
+    # -lable_file :  ./label/{symbol}_testing_label_{windows_length}.txt'
     label_dict = {}
-    print("label_file :", label_file)
+    # print("label_file :", label_file)
     with open(label_file) as f:
         for line in f:
             (key, val) = line.split(',')
             label_dict[key] = val.rstrip()
-
+    # print(label_dict)
     path = "{}/{}".format(os.getcwd(), input)
-
+    # path : C:\Users\korea\Desktop\jhy\dd\colab-ai\cnn/dataset/5_100/272210.KS/training
+    # 처음 생성하는게 아니라 두번째 중복으로 생성하는 것이라면
+    # filename에 기존에 생성되어있었던 classes파일이 들어가 있을것이고,
+    # split("_")하면 길이가 1인 배열이 반환되므로
+    # list index out of range 에러가 날것임, filename에서 classes는 종목코드가 아니므로 가장 마지막 인덱스에 위치해있으므로
+    # 상관없다. 결론은 이 에러는 무시해도 된다.
     for filename in os.listdir(path):
         if filename != '':
             for k, v in label_dict.items():
                 # print(filename)
                 splitname = filename.split("_")
+                # print(splitname)
                 f, e = os.path.splitext(filename)
                 # print("[DEBUG] - {}".format(splitname))
                 newname = "{}_{}".format(splitname[0], splitname[1])
@@ -126,12 +129,14 @@ def createLabel(fname, seq_len):
         starting = 0
         endvalue = 0
         label = ""
+
         if len(c) == int(seq_len) + 1:
-            # starting = c["Close"].iloc[-2]
+
             # study : iloc[-1] : # 마지막 행만
 
             #seq_len +1 일치 시초가, 종가
-            starting = c["Open"].iloc[-1]
+            # starting = c["Open"].iloc[-1]
+            starting = c["Close"].iloc[-2]
             endvalue = c["Close"].iloc[-1]
             # print("*******")
             # print(f'endvalue {endvalue} - starting {starting}')
@@ -147,6 +152,9 @@ def createLabel(fname, seq_len):
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
+        # else :
+        #     print(c)
+
     print("Create label finished.")
 
 
