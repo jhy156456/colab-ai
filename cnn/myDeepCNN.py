@@ -153,64 +153,64 @@ def main():
     ####################################################################################################################
 
 
-    stock_code = "272210.KS"
-    day = "5"
-    dimension = "100"
-    useVolumne = True
-    seq_len = 5
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
-    from mplfinance.original_flavor import candlestick2_ochl, volume_overlay
-
-    df = pd.read_csv('./stockdatas/',stock_code,'_training.csv')
-    df.reset_index(inplace=True)
-    df = df.iloc[-5:]
-    #         subprocess.call(
-    #             f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_training.csv -t training -d {dimension} -v {use_volume}',
-    #             shell=True)
-    my_dpi = 96
-    value = dimension / my_dpi
-    fig = plt.figure(figsize=(value,
-                              value), dpi=my_dpi)
-    # ax1 = fig.add_subplot(1, 1, 1)
-    # ax1 = fig.subplot2_grid(gs[0])
-    top_axes = plt.subplot2grid((4, 4), (0, 0), rowspan=3, colspan=4)
-    bottom_axes = plt.subplot2grid((4, 4), (3, 0), rowspan=1, colspan=4, sharex=top_axes)
-
-    candlestick2_ochl(top_axes, df['Open'], df['Close'], df['High'], df['Low'],
-                      width=1, colorup='#77d879', colordown='#db3f3f')
-    top_axes.grid(False)
-    top_axes.set_xticklabels([])
-    top_axes.set_yticklabels([])
-    top_axes.xaxis.set_visible(False)
-    top_axes.yaxis.set_visible(False)
-    top_axes.axis('off')
-
-    # create the second axis for the volume bar-plot
-    # Add a seconds axis for the volume overlay
-    # ax2 = ax1.twinx()
-
-    # ax2 = fig.add_subplot(gs[1])
-    # ax2 = ax1.twinx()
-
-    # Plot the volume overlay
-    bc = volume_overlay(bottom_axes, df['Open'], df['Close'], df['Volume'],
-                        colorup='#77d879', colordown='#db3f3f', alpha=0.5, width=1)
-    bottom_axes.add_collection(bc)
-    bottom_axes.grid(False)
-    bottom_axes.set_xticklabels([])
-    bottom_axes.set_yticklabels([])
-    bottom_axes.xaxis.set_visible(False)
-    bottom_axes.yaxis.set_visible(False)
-    bottom_axes.axis('off')
-
-
-    fig.show()
-    # Alpha 채널 없애기 위한.
-    # from PIL import Image
-    # img = Image.open(pngfile)
-    # img = img.convert('RGB')
-    # img.save(pngfile)
+    # stock_code = "272210.KS"
+    # day = "5"
+    # dimension = "100"
+    # useVolumne = True
+    # seq_len = 5
+    # import matplotlib.pyplot as plt
+    # import matplotlib.dates as mdates
+    # from mplfinance.original_flavor import candlestick2_ochl, volume_overlay
+    #
+    # df = pd.read_csv('./stockdatas/',stock_code,'_training.csv')
+    # df.reset_index(inplace=True)
+    # df = df.iloc[-5:]
+    # #         subprocess.call(
+    # #             f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_training.csv -t training -d {dimension} -v {use_volume}',
+    # #             shell=True)
+    # my_dpi = 96
+    # value = dimension / my_dpi
+    # fig = plt.figure(figsize=(value,
+    #                           value), dpi=my_dpi)
+    # # ax1 = fig.add_subplot(1, 1, 1)
+    # # ax1 = fig.subplot2_grid(gs[0])
+    # top_axes = plt.subplot2grid((4, 4), (0, 0), rowspan=3, colspan=4)
+    # bottom_axes = plt.subplot2grid((4, 4), (3, 0), rowspan=1, colspan=4, sharex=top_axes)
+    #
+    # candlestick2_ochl(top_axes, df['Open'], df['Close'], df['High'], df['Low'],
+    #                   width=1, colorup='#77d879', colordown='#db3f3f')
+    # top_axes.grid(False)
+    # top_axes.set_xticklabels([])
+    # top_axes.set_yticklabels([])
+    # top_axes.xaxis.set_visible(False)
+    # top_axes.yaxis.set_visible(False)
+    # top_axes.axis('off')
+    #
+    # # create the second axis for the volume bar-plot
+    # # Add a seconds axis for the volume overlay
+    # # ax2 = ax1.twinx()
+    #
+    # # ax2 = fig.add_subplot(gs[1])
+    # # ax2 = ax1.twinx()
+    #
+    # # Plot the volume overlay
+    # bc = volume_overlay(bottom_axes, df['Open'], df['Close'], df['Volume'],
+    #                     colorup='#77d879', colordown='#db3f3f', alpha=0.5, width=1)
+    # bottom_axes.add_collection(bc)
+    # bottom_axes.grid(False)
+    # bottom_axes.set_xticklabels([])
+    # bottom_axes.set_yticklabels([])
+    # bottom_axes.xaxis.set_visible(False)
+    # bottom_axes.yaxis.set_visible(False)
+    # bottom_axes.axis('off')
+    #
+    #
+    # fig.show()
+    # # Alpha 채널 없애기 위한.
+    # # from PIL import Image
+    # # img = Image.open(pngfile)
+    # # img = img.convert('RGB')
+    # # img.save(pngfile)
 
 
     ####################################################################################################################

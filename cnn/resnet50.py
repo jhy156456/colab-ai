@@ -1,36 +1,36 @@
-import tensorflow as tf
 import os
+import logging
+
+logging.disable(logging.WARNING)
+import tensorflow as tf
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-config = tf.ConfigProto()
+# config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
-
+# sess = tf.Session(config=config)
+sess = tf.compat.v1.Session(config=config)
 
 import math
-import json
-import sys
 
 import keras
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, Flatten, Activation, add
-from keras.layers import BatchNormalization,Layer,InputSpec
+from keras.layers import Input, Dense, Conv2D, ZeroPadding2D, Flatten, Activation, add
+from keras.layers import BatchNormalization
 from keras.models import Model
-from keras import initializers
 from keras import backend as K
 from keras.utils import np_utils
-from keras.optimizers import *
+from tensorflow.keras.optimizers import *
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
-import dataset
 import argparse
-
 import time
 from datetime import timedelta
-
+from utils.dataset import dataset
 
 def build_dataset(data_directory, img_width):
-    X, y, tags = dataset.dataset(data_directory, int(img_width))
+    X, y, tags = dataset(data_directory, int(img_width))
     nb_classes = len(tags)
 
     sample_count = len(y)
@@ -132,11 +132,12 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
     input_layer = Input(shape=SHAPE)
 
     x = ZeroPadding2D((3, 3))(input_layer)
-    x = Conv2D(64, 7, 7, subsample=(2, 2), name='conv1')(x)
+    x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
     x = Activation('relu')(x)
     # x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
+    # [배열 안은 필터의갯수]
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
@@ -192,7 +193,7 @@ def main():
     epochs = args.epochs
     batch_size = args.batch_size
     SHAPE = (img_width, img_height, channel)
-    bn_axis = 3 if K.image_dim_ordering() == 'tf' else 1
+    bn_axis = 3 if keras.backend.image_data_format() == 'tf' else 1
 
     data_directory = args.input
     period_name = data_directory.split('/')
@@ -206,16 +207,19 @@ def main():
 
     model = build_model(SHAPE, nb_classes, bn_axis)
 
-    model.compile(optimizer=Adam(lr=1.0e-4),
+    model.compile(optimizer=Adam(learning_rate=1.0e-4),
                   loss='categorical_crossentropy', metrics=['accuracy'])
 
     # Fit the model
-    model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+    history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
 
     # Save Model or creates a HDF5 file
     model.save('{}epochs_{}batch_resnet50_model_{}.h5'.format(
         epochs, batch_size, data_directory.replace("/", "_")), overwrite=True)
+
+
     # del model  # deletes the existing model
+    print("-")
     predicted = model.predict(X_test)
     y_pred = np.argmax(predicted, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
@@ -233,22 +237,22 @@ def main():
         fp = 1
     if fn == 0:
         fn = 1
-    TPR = float(tp)/(float(tp)+float(fn))
-    FPR = float(fp)/(float(fp)+float(tn))
-    accuracy = round((float(tp) + float(tn))/(float(tp) +
-                                              float(fp) + float(fn) + float(tn)), 3)
-    specitivity = round(float(tn)/(float(tn) + float(fp)), 3)
-    sensitivity = round(float(tp)/(float(tp) + float(fn)), 3)
-    mcc = round((float(tp)*float(tn) - float(fp)*float(fn))/math.sqrt(
-        (float(tp)+float(fp))
-        * (float(tp)+float(fn))
-        * (float(tn)+float(fp))
-        * (float(tn)+float(fn))
+    TPR = float(tp) / (float(tp) + float(fn))
+    FPR = float(fp) / (float(fp) + float(tn))
+    accuracy = round((float(tp) + float(tn)) / (float(tp) +
+                                                float(fp) + float(fn) + float(tn)), 3)
+    specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
+    sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
+    mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
+        (float(tp) + float(fp))
+        * (float(tp) + float(fn))
+        * (float(tn) + float(fp))
+        * (float(tn) + float(fn))
     ), 3)
 
     f_output = open(args.output, 'a')
     f_output.write('=======\n')
-    f_output.write('{}epochs_{}batch_resnet50\n'.format(
+    f_output.write('{}epochs_{}batch_cnn\n'.format(
         epochs, batch_size))
     f_output.write('TN: {}\n'.format(tn))
     f_output.write('FN: {}\n'.format(fn))
@@ -266,6 +270,76 @@ def main():
     end_time = time.monotonic()
     print("Duration : {}".format(timedelta(seconds=end_time - start_time)))
 
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import roc_curve, auc
+
+    # Plot a confusion matrix.
+    # cm is the confusion matrix, names are the names of the classes.
+    def plot_confusion_matrix(cm, names, title='Confusion matrix', cmap=plt.cm.Blues):
+        plt.imshow(cm, interpolation='nearest', cmap=cmap)
+        plt.title(title)
+        plt.colorbar()
+        tick_marks = np.arange(len(names))
+        plt.xticks(tick_marks, names, rotation=45)
+        plt.yticks(tick_marks, names)
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
+
+    # Plot an ROC. pred - the predictions, y - the expected output.
+    def plot_roc(pred, y):
+        fpr, tpr, _ = roc_curve(y, pred)
+        roc_auc = auc(fpr, tpr)
+
+        plt.figure()
+        plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic (ROC)')
+        plt.legend(loc="lower right")
+        plt.savefig('ROC AUC.png')
+        plt.show()
+
+    def plot_acc_loss(hist):
+        fig, loss_ax = plt.subplots()
+        acc_ax = loss_ax.twinx()
+
+        loss_ax.plot(hist.history['loss'], 'y', label='train loss')
+        loss_ax.plot(hist.history['val_loss'], 'r', label='val loss')
+        loss_ax.set_xlabel('epoch')
+        loss_ax.set_ylabel('loss')
+        loss_ax.legend(loc='upper left')
+
+        acc_ax.plot(hist.history['acc'], 'b', label='train acc')
+        acc_ax.plot(hist.history['val_acc'], 'g', label='val acc')
+        acc_ax.set_ylabel('accuracy')
+        acc_ax.legend(loc='upper left')
+
+        plt.show()
+
+    def plot_acc_loss_epoch(history):
+        #https://snowdeer.github.io/machine-learning/2018/01/10/check-relation-between-epoch-and-loss-using-graph/
+        y_acc = history.history['accuracy']
+        y_loss = history.history['loss']
+
+        x_len = np.arange(len(y_loss))
+        plt.plot(x_len, y_acc, marker='.', c='red', label="accuracy")
+        plt.plot(x_len, y_loss, marker='.', c='blue', label="Loss")
+
+        plt.legend(loc='upper right')
+        plt.grid()
+        plt.xlabel('epoch')
+        plt.ylabel('loss')
+        plt.show()
+
+
+
+    # print(history.history.keys())
+    plot_acc_loss_epoch(history)
+    # plot_roc(y_pred, Y_test)
 
 if __name__ == "__main__":
     main()
