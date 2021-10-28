@@ -64,6 +64,7 @@ for i in df['jongcode'].unique():
 
     
     tokenizer = Tokenizer()
+    print(X_train)
     tokenizer.fit_on_texts(X_train)
     #print(tokenizer.word_index)
 
@@ -115,44 +116,44 @@ for i in df['jongcode'].unique():
     max_len = 30
     
     
-    def below_threshold_len(max_len, nested_list):
-        cnt = 0
-        for s in nested_list:
-            if(len(s) <= max_len):
-                cnt = cnt + 1
-        print('<종목코드', str_jong, '> 전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s'%(max_len, (cnt / len(nested_list))*100))
-
-   # below_threshold_len(max_len, X_train)
-
-
-    X_train = pad_sequences(X_train, maxlen = max_len)
-    X_test = pad_sequences(X_test, maxlen = max_len)
-
-
-    from tensorflow.keras.layers import Embedding, Dense, LSTM
-    from tensorflow.keras.models import Sequential
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-
-    model = Sequential()
-    model.add(Embedding(vocab_size, 100))
-    model.add(LSTM(128))
-    model.add(Dense(1, activation='sigmoid'))
-
-
-    file_name = 'best_model_' + "{}".format(i).split('.')[0] + '.h5' 
-
-    es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
-    #mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-    mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
-
-
-    model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
-
-    print('<종목코드', str_jong, '>데이터 학습 중...')
-
-    history = model.fit(X_train, y_train, epochs=15, callbacks=[es, mc], batch_size=60, validation_split=0.2)
-    #history = model.fit(X_train, y_train, epochs=13, batch_size=60, validation_split=0.2)
-    
-    loaded_model = load_model(file_name)
-    print('<종목코드', str_jong, "> 테스트 정확도: %.4f" % (loaded_model.evaluate(X_test, y_test)[1]))
+   #  def below_threshold_len(max_len, nested_list):
+   #      cnt = 0
+   #      for s in nested_list:
+   #          if(len(s) <= max_len):
+   #              cnt = cnt + 1
+   #      print('<종목코드', str_jong, '> 전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s'%(max_len, (cnt / len(nested_list))*100))
+   #
+   # # below_threshold_len(max_len, X_train)
+   #
+   #
+   #  X_train = pad_sequences(X_train, maxlen = max_len)
+   #  X_test = pad_sequences(X_test, maxlen = max_len)
+   #
+   #
+   #  from tensorflow.keras.layers import Embedding, Dense, LSTM
+   #  from tensorflow.keras.models import Sequential
+   #  from tensorflow.keras.models import load_model
+   #  from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+   #
+   #  model = Sequential()
+   #  model.add(Embedding(vocab_size, 100))
+   #  model.add(LSTM(128))
+   #  model.add(Dense(1, activation='sigmoid'))
+   #
+   #
+   #  file_name = 'best_model_' + "{}".format(i).split('.')[0] + '.h5'
+   #
+   #  es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
+   #  #mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+   #  mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
+   #
+   #
+   #  model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
+   #
+   #  print('<종목코드', str_jong, '>데이터 학습 중...')
+   #
+   #  history = model.fit(X_train, y_train, epochs=15, callbacks=[es, mc], batch_size=60, validation_split=0.2)
+   #  #history = model.fit(X_train, y_train, epochs=13, batch_size=60, validation_split=0.2)
+   #
+   #  loaded_model = load_model(file_name)
+   #  print('<종목코드', str_jong, "> 테스트 정확도: %.4f" % (loaded_model.evaluate(X_test, y_test)[1]))

@@ -25,7 +25,7 @@ testing_end_date = "2021-12-31"
 
 
 
-download_data = False
+download_data = True
 onlytesting = True
 onlytraining = True
 use_volume = True

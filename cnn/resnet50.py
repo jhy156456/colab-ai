@@ -210,8 +210,17 @@ def main():
     model.compile(optimizer=Adam(learning_rate=1.0e-4),
                   loss='categorical_crossentropy', metrics=['accuracy'])
 
-    # Fit the model
-    history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+    # Fit the model.
+    # 되는건가 이거
+    model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
+        filepath=data_directory,
+        monitor='val_accuracy',
+        mode='max',
+        save_best_only=True)
+
+    history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,callbacks=[model_checkpoint_callback])
+
+
 
     # Save Model or creates a HDF5 file
     model.save('{}epochs_{}batch_resnet50_model_{}.h5'.format(
