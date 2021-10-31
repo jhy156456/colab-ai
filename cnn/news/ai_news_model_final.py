@@ -1,11 +1,8 @@
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import re
-import urllib.request
+import pandas as pd
 from konlpy.tag import Okt
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
 
 df = pd.read_excel('news_data.xlsx', engine='openpyxl')
 
@@ -64,10 +61,13 @@ for i in df['jongcode'].unique():
 
     
     tokenizer = Tokenizer()
+    print("------------------------------------------------------------------------------------------")
     print(X_train)
+    print("X_train.size() : ", len(X_train))
+    print("------------------------------------------------------------------------------------------")
+    # fit_on_texts : 문자 데이터를 입력받아서 리스트의 형태로 변환합니다.
     tokenizer.fit_on_texts(X_train)
-    #print(tokenizer.word_index)
-
+    print(tokenizer.word_index)
 
     threshold = 3
     total_cnt = len(tokenizer.word_index) # 단어의 수
@@ -98,9 +98,23 @@ for i in df['jongcode'].unique():
 
     tokenizer = Tokenizer(vocab_size) 
     tokenizer.fit_on_texts(X_train)
+    print("------------------------------------------------------------------------------------------")
+    print(X_train)
+    print("------------------------------------------------------------------------------------------")
+    # 텍스트 안의 단어들을 숫자의 시퀀스의 형태로 변환합니다.
+    # 대한항공:1, 체결:2, 실적:3 ....
+    # [주리다,탈출,비법,공개,기관,억...]
+    # -> [9,63,26,5]
+    # 이 행위는 단어ID 표현인듯!
+    # 여기서 to_categorical()을 사용하면 원핫인코딩이 된다
+    # https://dacon.io/en/codeshare/1839
     X_train = tokenizer.texts_to_sequences(X_train)
-    X_test = tokenizer.texts_to_sequences(X_test)
 
+    X_test = tokenizer.texts_to_sequences(X_test)
+    print("------------------------------------------------------------------------------------------")
+    print("texts_to_sequences")
+    print(X_train)
+    print("------------------------------------------------------------------------------------------")
 
     y_train = np.array(train_data['label'])
     y_test = np.array(test_data['label'])
@@ -116,44 +130,55 @@ for i in df['jongcode'].unique():
     max_len = 30
     
     
-   #  def below_threshold_len(max_len, nested_list):
-   #      cnt = 0
-   #      for s in nested_list:
-   #          if(len(s) <= max_len):
-   #              cnt = cnt + 1
-   #      print('<종목코드', str_jong, '> 전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s'%(max_len, (cnt / len(nested_list))*100))
-   #
-   # # below_threshold_len(max_len, X_train)
-   #
-   #
-   #  X_train = pad_sequences(X_train, maxlen = max_len)
-   #  X_test = pad_sequences(X_test, maxlen = max_len)
-   #
-   #
-   #  from tensorflow.keras.layers import Embedding, Dense, LSTM
-   #  from tensorflow.keras.models import Sequential
-   #  from tensorflow.keras.models import load_model
-   #  from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-   #
-   #  model = Sequential()
-   #  model.add(Embedding(vocab_size, 100))
-   #  model.add(LSTM(128))
-   #  model.add(Dense(1, activation='sigmoid'))
-   #
-   #
-   #  file_name = 'best_model_' + "{}".format(i).split('.')[0] + '.h5'
-   #
-   #  es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
-   #  #mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-   #  mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
-   #
-   #
-   #  model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
-   #
-   #  print('<종목코드', str_jong, '>데이터 학습 중...')
-   #
-   #  history = model.fit(X_train, y_train, epochs=15, callbacks=[es, mc], batch_size=60, validation_split=0.2)
-   #  #history = model.fit(X_train, y_train, epochs=13, batch_size=60, validation_split=0.2)
-   #
-   #  loaded_model = load_model(file_name)
-   #  print('<종목코드', str_jong, "> 테스트 정확도: %.4f" % (loaded_model.evaluate(X_test, y_test)[1]))
+    def below_threshold_len(max_len, nested_list):
+        cnt = 0
+        for s in nested_list:
+            if(len(s) <= max_len):
+                cnt = cnt + 1
+        print('<종목코드', str_jong, '> 전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s'%(max_len, (cnt / len(nested_list))*100))
+
+   # below_threshold_len(max_len, X_train)
+
+
+
+    # 서로 다른 개수의 단어로 이루어진 문장을 같은 길이로 만들어주기 위해 패딩을 사용할 수 있습니다.
+    # 패딩을 사용하기 위해서는 tensorflow.keras.preprocessing.sequence 모듈의 pad_sequences 함수를 사용합니다.
+    # https://codetorial.net/tensorflow/natural_language_processing_in_tensorflow_01.html
+    X_train = pad_sequences(X_train, maxlen = max_len)
+    print("------------------------------------------------------------------------------------------")
+    print("pad_sequences")
+    print(X_train)
+    print("------------------------------------------------------------------------------------------")
+    X_test = pad_sequences(X_test, maxlen = max_len)
+
+
+    from tensorflow.keras.layers import Embedding, Dense, LSTM, Bidirectional
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.models import load_model
+    from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+
+    model = Sequential()
+    model.add(Embedding(vocab_size, 100))
+    model.add(Bidirectional(LSTM(128)))
+    # model.add(LSTM(128))
+    model.add(Dense(1, activation='sigmoid'))
+
+
+    file_name = 'best_model_' + "{}".format(i).split('.')[0] + '.h5'
+
+    es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
+    #mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+    mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
+
+
+    model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
+
+    print('<종목코드', str_jong, '>데이터 학습 중...')
+
+    history = model.fit(X_train, y_train, epochs=30, callbacks=[es, mc], batch_size=60, validation_split=0.2)
+    #history = model.fit(X_train, y_train, epochs=13, batch_size=60, validation_split=0.2)
+
+    loaded_model = load_model(file_name)
+    print('<종목코드', str_jong, "> 테스트 정확도: %.4f" % (loaded_model.evaluate(X_test, y_test)[1]))
+
+    break;
