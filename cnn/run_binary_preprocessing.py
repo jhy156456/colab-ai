@@ -12,14 +12,10 @@ symbol = sys.argv[1]
 windows_length = sys.argv[2]
 dimension = sys.argv[3]
 
-# training_start_date = "2000-01-01"
 training_start_date = "2000-01-01"
-# training_end_date = "2016-12-31"
-training_end_date = "2020-12-31"
+training_end_date = "2021-05-31"
 
-# testing_start_date = "2017-01-01"
-testing_start_date = "2021-01-01"
-# testing_end_date = "2018-06-14"
+testing_start_date = "2021-06-01"
 testing_end_date = "2021-12-31"
 
 
