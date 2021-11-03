@@ -220,6 +220,7 @@ def main():
 
     y_pred = np.argmax(predicted, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
+    print(Y_test)
     cm = confusion_matrix(Y_test, y_pred)
     report = classification_report(Y_test, y_pred)
     tn = cm[0][0]

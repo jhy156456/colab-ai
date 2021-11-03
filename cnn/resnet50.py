@@ -6,11 +6,16 @@ import tensorflow as tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+import warnings
+warnings.filterwarnings(action='ignore')
 # config = tf.ConfigProto()
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 # sess = tf.Session(config=config)
 sess = tf.compat.v1.Session(config=config)
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc, accuracy_score
+
 
 import math
 
@@ -230,8 +235,13 @@ def main():
     # del model  # deletes the existing model
     print("-")
     predicted = model.predict(X_test)
+
     y_pred = np.argmax(predicted, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
+    print("------------------------------------------------------------------------------------------")
+    print(accuracy_score(Y_test, y_pred))
+    print("------------------------------------------------------------------------------------------")
+
     cm = confusion_matrix(Y_test, y_pred)
     report = classification_report(Y_test, y_pred)
     tn = cm[0][0]
@@ -279,8 +289,6 @@ def main():
     end_time = time.monotonic()
     print("Duration : {}".format(timedelta(seconds=end_time - start_time)))
 
-    import matplotlib.pyplot as plt
-    from sklearn.metrics import roc_curve, auc
 
     # Plot a confusion matrix.
     # cm is the confusion matrix, names are the names of the classes.
