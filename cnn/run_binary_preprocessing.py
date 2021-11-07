@@ -18,10 +18,7 @@ training_end_date = "2021-05-31"
 testing_start_date = "2021-06-01"
 testing_end_date = "2021-12-31"
 
-
-
-
-download_data = True
+download_data = False
 onlytesting = True
 onlytraining = True
 use_volume = True

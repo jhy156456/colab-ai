@@ -3,7 +3,7 @@ import subprocess
 stock_code = "272210.KS"
 day = "50"
 image_dimension = "250"
-epochs = "10"
+epochs = "25"
 # epochs를 20으로 하면 오류가 나네..?
 batch_size = "8"
 try:
