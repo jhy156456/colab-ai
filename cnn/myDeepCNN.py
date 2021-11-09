@@ -19,7 +19,7 @@ from tensorflow.keras.models import Model
 from keras.utils import np_utils
 from tensorflow.keras.optimizers import *
 import numpy as np
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.metrics import classification_report
 # from utils.dataset import dataset as dataset
 from utils.dataset import dataset
@@ -217,10 +217,13 @@ def main():
     ####################################################################################################################
     ####################################################################################################################
     ####################################################################################################################
-
+    print("predicted.shape : ",predicted.shape)
+    print("Y_test.shape : ", Y_test.shape)
     y_pred = np.argmax(predicted, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
-    print(Y_test)
+    print("------------------------------------------------------------------------------------------")
+    print(accuracy_score(Y_test, y_pred))
+    print("------------------------------------------------------------------------------------------")
     cm = confusion_matrix(Y_test, y_pred)
     report = classification_report(Y_test, y_pred)
     tn = cm[0][0]

@@ -32,13 +32,13 @@ try:
     # print(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ')
     # subprocess.call(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ', shell=True)
 
-    # print(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
-    # subprocess.call(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"', shell=True)
+    print(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
+    subprocess.call(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"', shell=True)
 
-    print(
-        f'python resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
-    subprocess.call(
-        f'python resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"',
-        shell=True)
+    # print(
+    #     f'python resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
+    # subprocess.call(
+    #     f'python resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"',
+    #     shell=True)
 except Exception as identifier:
     print(identifier)

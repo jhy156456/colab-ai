@@ -171,7 +171,7 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
     x = AveragePooling2D((7, 7), name='avg_pool')(x)
 
     x = Flatten()(x)
-    x = Dense(4, activation='softmax', name='fc10')(x)
+    x = Dense(4, activation='relu', name='fc10')(x)
 
     model = Model(input_layer, x)
 
@@ -513,7 +513,7 @@ def main():
     # our final FC layer head will have two dense layers, the final one
     # being our regression head
     x = Dense(4, activation="relu")(combinedInput)
-    x = Dense(2, activation="relu")(x)
+    x = Dense(2, activation="softmax")(x)
     # our final model will accept categorical/numerical data on the MLP
     # input and images on the CNN input, outputting a single value (the
     # predicted price of the house)

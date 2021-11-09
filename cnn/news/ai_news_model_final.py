@@ -161,7 +161,7 @@ news_X_train = []
 for sentence in train_data['document']:
     temp_X = okt.morphs(sentence, stem=True)  # 토큰화
     temp_X = [word for word in temp_X if not word in stopwords]  # 불용어 제거
-    temp_X = np.asarray(temp_X)
+    # temp_X = np.asarray(temp_X)
     news_X_train.append(temp_X)
 print('<종목코드', str_jong, '> 테스트용 샘플 토큰화 중...')
 
@@ -169,7 +169,7 @@ news_X_test = []
 for sentence in test_data['document']:
     temp_X = okt.morphs(sentence, stem=True)  # 토큰화
     temp_X = [word for word in temp_X if not word in stopwords]  # 불용어 제거
-    temp_X = np.asarray(temp_X)
+    # temp_X = np.asarray(temp_X)
     news_X_test.append(temp_X)
 
 print('<종목코드', str_jong, '> 리뷰의 최대 길이 :', max(len(l) for l in news_X_train))
@@ -224,7 +224,6 @@ tokenizer.fit_on_texts(news_X_train)
 # 여기서 to_categorical()을 사용하면 원핫인코딩이 된다
 # https://dacon.io/en/codeshare/1839
 news_X_train = tokenizer.texts_to_sequences(news_X_train)
-
 news_X_test = tokenizer.texts_to_sequences(news_X_test)
 # print("------------------------------------------------------------------------------------------")
 # print("texts_to_sequences")
@@ -240,6 +239,11 @@ drop_train = [index for index, sentence in enumerate(news_X_train) if len(senten
 news_X_train = np.delete(news_X_train, drop_train, axis=0)
 news_Y_train = np.delete(news_Y_train, drop_train, axis=0)
 print("------------------------------------------------------------------------------------------")
+
+# for i in range(len(news_X_train)):
+#     news_X_train[i] = np.array(news_X_train[i])
+# for i in range(len(news_Y_train)):
+#     news_Y_train[i] = np.array(news_Y_train[i])
 print(news_X_train[:3])
 print("------------------------------------------------------------------------------------------")
 print('<종목코드', str_jong, '> 훈련용 빈샘플제거 후 개수', len(news_X_train))
@@ -289,6 +293,13 @@ mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_b
 news_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
 
 print('<종목코드', str_jong, '>데이터 학습 중...')
+
+
+news_X_train = np.asarray(news_X_train).astype("float32")
+news_Y_train = np.asarray(news_Y_train).astype("float32")
+news_X_test = np.asarray(news_X_test).astype("float32")
+news_Y_test = np.asarray(news_Y_test).astype("float32")
+
 
 history = news_model.fit(news_X_train, news_Y_train, epochs=epochs, callbacks=[es, mc], batch_size=60,
                          validation_split=0.2)

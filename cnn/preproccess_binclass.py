@@ -179,7 +179,7 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
     # print(path)
     if not os.path.exists("{}/dataset/{}_{}/{}/{}".format(path, seq_len, dimension, symbol, dataset_type)):
         os.makedirs("{}/dataset/{}_{}/{}/{}".format(path, seq_len, dimension, symbol, dataset_type))
-
+    print("fname : " + fname);
     df = pd.read_csv(fname, parse_dates=True, index_col=0)
     df.fillna(0)
     plt.style.use('dark_background')
@@ -194,9 +194,6 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
         if len(c) == int(seq_len):
             my_dpi = 96
             value = dimension / my_dpi
-
-
-
             # http://blog.quantylab.com/candlestick.html
             fig = plt.figure(figsize=(value,
                                       value), dpi=my_dpi)
@@ -231,9 +228,6 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
             axes[1].yaxis.set_visible(False)
             axes[1].axis('off')
 
-
-
-
             plt.tight_layout()
             pngfile = 'dataset/{}_{}/{}/{}/{}-{}.png'.format(
                             seq_len, dimension, symbol, dataset_type, fname[11:-4], i)
@@ -244,9 +238,6 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
             img = Image.open(pngfile)
             img = img.convert('RGB')
             img.save(pngfile)
-    # normal length - end
-
-
 print("Converting olhc to candlestik finished.")
 
 # def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
