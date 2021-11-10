@@ -1,6 +1,8 @@
 import os
 import logging
+from collections import Counter
 
+from eunjeon import Mecab
 from sklearn.model_selection import train_test_split
 
 logging.disable(logging.WARNING)
@@ -26,7 +28,7 @@ import math
 import keras
 from keras.layers import Input, Dense, Conv2D, ZeroPadding2D, Flatten, Activation, add, MaxPooling2D, AveragePooling2D
 from keras.layers import BatchNormalization
-from keras.models import Model
+from keras.models import Model, load_model
 from keras import backend as K
 from keras.utils import np_utils
 from tensorflow.keras.optimizers import *
@@ -145,7 +147,7 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
     x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
     x = Activation('relu')(x)
-    x = MaxPooling2D((3, 3), strides=(2, 2))(x)
+    # x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
     # [배열 안은 필터의갯수]
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
@@ -168,10 +170,10 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
     # print("x nya {}".format(x))
-    x = AveragePooling2D((7, 7), name='avg_pool')(x)
+    # x = AveragePooling2D((7, 7), name='avg_pool')(x)
 
     x = Flatten()(x)
-    x = Dense(4, activation='relu', name='fc10')(x)
+    x = Dense(10, activation='relu', name='fc10')(x)
 
     model = Model(input_layer, x)
 
@@ -245,8 +247,8 @@ def main():
     training_end_date = "2021-05-31"
     testing_start_date = "2021-06-01"
     testing_end_date = "2021-12-31"
-    seq_len = 50
-    epochs = 150
+    seq_len = 20
+    # epochs = 150
 
     # str_jong = "{}".format(i).split('.')[0]
 
@@ -349,6 +351,9 @@ def main():
     print("countTrain : ", len(newsTrainData))
     print("countTest : ", len(newsTestData))
 
+    newsTrainData= newsTrainData.sort_values(by=['label'])
+    newsTestData= newsTestData.sort_values(by=['label'])
+
     df_train_data = {
         'document': newsTrainData.document,
         'label': newsTrainData.label
@@ -361,6 +366,8 @@ def main():
 
     train_data = pd.DataFrame(df_train_data, columns=['document', 'label'])
     test_data = pd.DataFrame(df_test_data, columns=['document', 'label'])
+
+
 
     train_data.drop_duplicates(subset=['document'], inplace=True)  # document 열에서 중복인 내용이 있다면 중복 제거
     train_data['document'] = train_data['document'].str.replace("[^ㄱ-ㅎㅏ-ㅣ가-힣 ]", "")  # 정규 표현식 수행
@@ -378,6 +385,51 @@ def main():
 
     stopwords = ['의', '가', '이', '은', '들', '는', '좀', '잘', '걍', '과', '도', '를', '으로', '자', '에', '와', '한', '하다']
 
+
+
+
+
+
+
+
+
+    # mecab = Mecab()
+    #
+    # train_data['tokenized'] = train_data['document'].apply(mecab.morphs)
+    # train_data['tokenized'] = train_data['tokenized'].apply(lambda x: [item for item in x if item not in stopwords])
+    # test_data['tokenized'] = test_data['document'].apply(mecab.morphs)
+    # test_data['tokenized'] = test_data['tokenized'].apply(lambda x: [item for item in x if item not in stopwords])
+    #
+    # from matplotlib import font_manager, rc
+    # font_name = font_manager.FontProperties(fname="c:/Windows/Fonts/malgun.ttf").get_name()
+    # rc('font', family=font_name)
+    #
+    #
+    # down_words = np.hstack(train_data[train_data.label == 0]['tokenized'].values)
+    # up_words = np.hstack(train_data[train_data.label == 1]['tokenized'].values)
+    # negative_word_count = Counter(down_words)
+    # print(negative_word_count.most_common(20))
+    # ## 상위 10개 단어 추출
+    # top10_novel_bow = negative_word_count.most_common(10)
+    # ## 10개 단어 시각화를 위한 기반 작업
+    # n_groups = len(top10_novel_bow)
+    # index = np.arange(n_groups)
+    # ## 단어빈도수와 단어 리스트 자료형 준비
+    # bow_vals = [x[1] for x in top10_novel_bow]
+    # bow_words = [x[0] for x in top10_novel_bow]
+    # ## 막대그래프 시각화
+    # bar_width = 0.25
+    # plt.bar(index, bow_vals, bar_width, color='b', label='Ocurrences')
+    # plt.xticks(index, bow_words)
+    # plt.tight_layout()
+    # plt.show()
+    #
+    # return
+
+
+
+
+
     print('<종목코드', str_jong, '> 훈련용 샘플 토큰화 중...')
     okt = Okt()
     news_X_train = []
@@ -386,14 +438,16 @@ def main():
         temp_X = [word for word in temp_X if not word in stopwords]  # 불용어 제거
         # temp_X = np.asarray(temp_X)
         news_X_train.append(temp_X)
-    print('<종목코드', str_jong, '> 테스트용 샘플 토큰화 중...')
 
+    print('<종목코드', str_jong, '> 테스트용 샘플 토큰화 중...')
     news_X_test = []
     for sentence in test_data['document']:
         temp_X = okt.morphs(sentence, stem=True)  # 토큰화
         temp_X = [word for word in temp_X if not word in stopwords]  # 불용어 제거
         # temp_X = np.asarray(temp_X)
         news_X_test.append(temp_X)
+
+
 
     print('<종목코드', str_jong, '> 리뷰의 최대 길이 :', max(len(l) for l in news_X_train))
     print('<종목코드', str_jong, '> 리뷰의 평균 길이 :', sum(map(len, news_X_train)) / len(news_X_train))
@@ -461,18 +515,11 @@ def main():
     # 빈 샘플들을 제거
     news_X_train = np.delete(news_X_train, drop_train, axis=0)
     news_Y_train = np.delete(news_Y_train, drop_train, axis=0)
-    print("------------------------------------------------------------------------------------------")
 
-    # for i in range(len(news_X_train)):
-    #     news_X_train[i] = np.array(news_X_train[i])
-    # for i in range(len(news_Y_train)):
-    #     news_Y_train[i] = np.array(news_Y_train[i])
-    print(news_X_train[:3])
-    print("------------------------------------------------------------------------------------------")
     print('<종목코드', str_jong, '> 훈련용 빈샘플제거 후 개수', len(news_X_train))
     print('<종목코드', str_jong, '> 테스트용 빈샘플제거 후 개수', len(news_Y_train))
 
-    max_len = 30
+    max_len = 100
 
     def below_threshold_len(max_len, nested_list):
         cnt = 0
@@ -489,8 +536,7 @@ def main():
     # https://codetorial.net/tensorflow/natural_language_processing_in_tensorflow_01.html
     news_X_train = pad_sequences(news_X_train, maxlen=max_len)
     # print("------------------------------------------------------------------------------------------")
-    # print("pad_sequences")
-    # print(news_X_train)
+    # print(news_X_train[:3])
     # print("------------------------------------------------------------------------------------------")
     news_X_test = pad_sequences(news_X_test, maxlen=max_len)
 
@@ -500,11 +546,13 @@ def main():
     from sklearn.metrics import confusion_matrix
 
     news_model = Sequential()
-    news_model.add(Embedding(vocab_size, 100))
-    news_model.add(Bidirectional(LSTM(128)))
+    news_model.add(Embedding(vocab_size, 128))
+    # news_model.add(Bidirectional(LSTM(256, return_sequences = True)))
+    news_model.add(Bidirectional(LSTM(256)))
     # news_model.add(LSTM(128))
     # news_model.add(Dense(2, activation='sigmoid'))
-    news_model.add(Dense(4, activation="relu"))
+    news_model.add(Dense(128, activation="relu"))
+    news_model.add(Dense(10, activation="relu"))
 
     # create the input to our final set of layers as the *output* of both
     # the MLP and CNN
@@ -512,7 +560,7 @@ def main():
     combinedInput = concatenate([news_model.output, model.output])
     # our final FC layer head will have two dense layers, the final one
     # being our regression head
-    x = Dense(4, activation="relu")(combinedInput)
+    x = Dense(10, activation="relu")(combinedInput)
     x = Dense(2, activation="softmax")(x)
     # our final model will accept categorical/numerical data on the MLP
     # input and images on the CNN input, outputting a single value (the
@@ -523,200 +571,107 @@ def main():
     # implying that we seek to minimize the absolute percentage difference
     # between our price *predictions* and the *actual prices*
     opt = Adam(lr=1e-3, decay=1e-3 / 200)
-    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    opt = Adam(lr=1e-05)
+
+    # model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer = tf.optimizers.RMSprop(lr=0.001), loss ='binary_crossentropy', metrics=['accuracy'])
     # train the model
     print("[INFO] training model...")
     news_X_train = np.asarray(news_X_train).astype(np.float32)
     news_Y_train = np.asarray(news_Y_train).astype(np.float32)
     news_X_test = np.asarray(news_X_test).astype(np.float32)
     news_Y_test = np.asarray(news_Y_test).astype(np.float32)
-    model.fit(x=[news_X_train, X_train], y=Y_train, epochs=10, batch_size=8)
+
+    # dataset_12 = tf.data.Dataset.from_tensor_slices(())
+    # dataset_label = tf.data.Dataset.from_tensor_slices((Y_train))
+
+    # dataset = tf.data.Dataset.zip((dataset_12,dataset_label)).shuffle(3, reshuffle_each_iteration=True).batch(2)
+
+    es = EarlyStopping(monitor='loss', mode='max', verbose=1, patience=10)
+    file_name = './{}epochs_{}batch_resnet+lstm_model_{}.h5'.format(epochs, batch_size, data_directory.replace("/", "_"))
+    mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+    model.fit(x = [news_X_train,X_train],y=Y_train, epochs=epochs,callbacks=[es, mc])
+
+    print("------------------------------------------------------------------------------------------")
+    print("X_train size : ", X_train.shape)
+    print("Y_train size : ", Y_train.shape)
+
+    print("X_test size : ", X_test.shape)
+    print("Y_test size : ", Y_test.shape)
+
+
+    print("news_X_train size : ", news_X_train.shape)
+    # print(news_X_train[0])
+    # print(news_X_train[0].shape)
+    print("news_X_test size : ", news_X_test.shape)
+    print("news_X_test size : ", news_Y_train.shape)
+    print("news_Y_test size : ", news_Y_test.shape)
     # make predictions on the testing data
     print("[INFO] predicting house prices...")
-    preds = model.predict([news_X_test, X_test])
+    # loaded_model = load_model(file_name)
+    preds = model.predict([news_X_test,X_test])
     print("------------------------------------------------------------------------------------------")
-    print(accuracy_score(Y_test, preds))
+    print("preds : ", preds)
+    print("Y_test : ", Y_test)
+
+
+    y_preds = np.argmax(preds,axis=1)
+    Y_test = np.argmax(Y_test,axis=1)
+    # allTest = np.argmax([news_Y_test,Y_test], axis=1)
+
+
+    print(accuracy_score(Y_test, y_preds))
     print("------------------------------------------------------------------------------------------")
     ################################## 뉴스 데이터 추출 및 병합끝 ##########################################################
     ###################################################################################################################
     ###################################################################################################################
     ###################################################################################################################
+    cm = confusion_matrix(Y_test, y_preds)
+    report = classification_report(Y_test, y_preds)
+    tn = cm[0][0]
+    fn = cm[1][0]
+    tp = cm[1][1]
+    fp = cm[0][1]
+    if tp == 0:
+        tp = 1
+    if tn == 0:
+        tn = 1
+    if fp == 0:
+        fp = 1
+    if fn == 0:
+        fn = 1
+    TPR = float(tp) / (float(tp) + float(fn))
+    FPR = float(fp) / (float(fp) + float(tn))
+    accuracy = round((float(tp) + float(tn)) / (float(tp) +
+                                                float(fp) + float(fn) + float(tn)), 3)
+    specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
+    sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
+    mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
+        (float(tp) + float(fp))
+        * (float(tp) + float(fn))
+        * (float(tn) + float(fp))
+        * (float(tn) + float(fn))
+    ), 3)
 
-    #
-    # model.compile(optimizer=Adam(learning_rate=1.0e-4),
-    #               loss='categorical_crossentropy', metrics=['accuracy'])
-    #
-    # es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
-    # # mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-    # file_name = '{}epochs_{}batch_resnet50_model_{}.h5'.format(epochs, batch_size, data_directory.replace("/", "_"))
-    # mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
-    #
-    # history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,callbacks=[es, mc])
-    #
-    #
-    #
-    # # Save Model or creates a HDF5 file
-    # # model.save('{}epochs_{}batch_resnet50_model_{}.h5'.format(
-    # #     epochs, batch_size, data_directory.replace("/", "_")), overwrite=True)
-    #
-    #
-    # # del model  # deletes the existing model
-    # print("-")
-    # predicted = model.predict(X_test)
-    #
-    # y_pred = np.argmax(predicted, axis=1)
-    # Y_test = np.argmax(Y_test, axis=1)
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    # print("------------------------------------------------------------------------------------------")
-    # print(accuracy_score(Y_test, y_pred))
-    # print("------------------------------------------------------------------------------------------")
-    #
-    # cm = confusion_matrix(Y_test, y_pred)
-    # report = classification_report(Y_test, y_pred)
-    # tn = cm[0][0]
-    # fn = cm[1][0]
-    # tp = cm[1][1]
-    # fp = cm[0][1]
-    # if tp == 0:
-    #     tp = 1
-    # if tn == 0:
-    #     tn = 1
-    # if fp == 0:
-    #     fp = 1
-    # if fn == 0:
-    #     fn = 1
-    # TPR = float(tp) / (float(tp) + float(fn))
-    # FPR = float(fp) / (float(fp) + float(tn))
-    # accuracy = round((float(tp) + float(tn)) / (float(tp) +
-    #                                             float(fp) + float(fn) + float(tn)), 3)
-    # specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
-    # sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
-    # mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
-    #     (float(tp) + float(fp))
-    #     * (float(tp) + float(fn))
-    #     * (float(tn) + float(fp))
-    #     * (float(tn) + float(fn))
-    # ), 3)
-    #
-    # f_output = open(args.output, 'a')
-    # f_output.write('=======\n')
-    # f_output.write('{}epochs_{}batch_cnn\n'.format(
-    #     epochs, batch_size))
-    # f_output.write('TN: {}\n'.format(tn))
-    # f_output.write('FN: {}\n'.format(fn))
-    # f_output.write('TP: {}\n'.format(tp))
-    # f_output.write('FP: {}\n'.format(fp))
-    # f_output.write('TPR: {}\n'.format(TPR))
-    # f_output.write('FPR: {}\n'.format(FPR))
-    # f_output.write('accuracy: {}\n'.format(accuracy))
-    # f_output.write('specitivity: {}\n'.format(specitivity))
-    # f_output.write("sensitivity : {}\n".format(sensitivity))
-    # f_output.write("mcc : {}\n".format(mcc))
-    # f_output.write("{}".format(report))
-    # f_output.write('=======\n')
-    # f_output.close()
-    # end_time = time.monotonic()
-    # print("Duration : {}".format(timedelta(seconds=end_time - start_time)))
-    #
-    #
-    # # Plot a confusion matrix.
-    # # cm is the confusion matrix, names are the names of the classes.
-    # def plot_confusion_matrix(cm, names, title='Confusion matrix', cmap=plt.cm.Blues):
-    #     plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    #     plt.title(title)
-    #     plt.colorbar()
-    #     tick_marks = np.arange(len(names))
-    #     plt.xticks(tick_marks, names, rotation=45)
-    #     plt.yticks(tick_marks, names)
-    #     plt.tight_layout()
-    #     plt.ylabel('True label')
-    #     plt.xlabel('Predicted label')
-    #
-    # # Plot an ROC. pred - the predictions, y - the expected output.
-    # def plot_roc(pred, y):
-    #     fpr, tpr, _ = roc_curve(y, pred)
-    #     roc_auc = auc(fpr, tpr)
-    #
-    #     plt.figure()
-    #     plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
-    #     plt.plot([0, 1], [0, 1], 'k--')
-    #     plt.xlim([0.0, 1.0])
-    #     plt.ylim([0.0, 1.05])
-    #     plt.xlabel('False Positive Rate')
-    #     plt.ylabel('True Positive Rate')
-    #     plt.title('Receiver Operating Characteristic (ROC)')
-    #     plt.legend(loc="lower right")
-    #     plt.savefig('ROC AUC.png')
-    #     plt.show()
-    #
-    # def plot_acc_loss(hist):
-    #     fig, loss_ax = plt.subplots()
-    #     acc_ax = loss_ax.twinx()
-    #
-    #     loss_ax.plot(hist.history['loss'], 'y', label='train loss')
-    #     loss_ax.plot(hist.history['val_loss'], 'r', label='val loss')
-    #     loss_ax.set_xlabel('epoch')
-    #     loss_ax.set_ylabel('loss')
-    #     loss_ax.legend(loc='upper left')
-    #
-    #     acc_ax.plot(hist.history['acc'], 'b', label='train acc')
-    #     acc_ax.plot(hist.history['val_acc'], 'g', label='val acc')
-    #     acc_ax.set_ylabel('accuracy')
-    #     acc_ax.legend(loc='upper left')
-    #
-    #     plt.show()
-    #
-    # def plot_acc_loss_epoch(history):
-    #     #https://snowdeer.github.io/machine-learning/2018/01/10/check-relation-between-epoch-and-loss-using-graph/
-    #     y_acc = history.history['accuracy']
-    #     y_loss = history.history['loss']
-    #
-    #     x_len = np.arange(len(y_loss))
-    #     plt.plot(x_len, y_acc, marker='.', c='red', label="accuracy")
-    #     plt.plot(x_len, y_loss, marker='.', c='blue', label="Loss")
-    #
-    #     plt.legend(loc='upper right')
-    #     plt.grid()
-    #     plt.xlabel('epoch')
-    #     plt.ylabel('loss')
-    #     plt.show()
-    #
-    #
-    #
-    # # print(history.history.keys())
-    # plot_acc_loss_epoch(history)
-    # # plot_roc(y_pred, Y_test)
+    f_output = open(args.output, 'a')
+    f_output.write('=======\n')
+    f_output.write('resnet + news {}epochs_{}batch_cnn\n'.format(
+        epochs, batch_size))
+    f_output.write('TN: {}\n'.format(tn))
+    f_output.write('FN: {}\n'.format(fn))
+    f_output.write('TP: {}\n'.format(tp))
+    f_output.write('FP: {}\n'.format(fp))
+    f_output.write('TPR: {}\n'.format(TPR))
+    f_output.write('FPR: {}\n'.format(FPR))
+    f_output.write('accuracy: {}\n'.format(accuracy))
+    f_output.write('specitivity: {}\n'.format(specitivity))
+    f_output.write("sensitivity : {}\n".format(sensitivity))
+    f_output.write("mcc : {}\n".format(mcc))
+    f_output.write("{}".format(report))
+    f_output.write('=======\n')
+    f_output.close()
+    end_time = time.monotonic()
+    print("Duration : {}".format(timedelta(seconds=end_time - start_time)))
 
 
 if __name__ == "__main__":

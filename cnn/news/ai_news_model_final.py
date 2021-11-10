@@ -224,14 +224,17 @@ tokenizer.fit_on_texts(news_X_train)
 # 여기서 to_categorical()을 사용하면 원핫인코딩이 된다
 # https://dacon.io/en/codeshare/1839
 news_X_train = tokenizer.texts_to_sequences(news_X_train)
+news_Y_train = np.array(train_data['label'])
+
 news_X_test = tokenizer.texts_to_sequences(news_X_test)
+news_Y_test = np.array(test_data['label'])
+
 # print("------------------------------------------------------------------------------------------")
 # print("texts_to_sequences")
 # print(news_X_train)
 # print("------------------------------------------------------------------------------------------")
 
-news_Y_train = np.array(train_data['label'])
-news_Y_test = np.array(test_data['label'])
+
 
 drop_train = [index for index, sentence in enumerate(news_X_train) if len(sentence) < 1]
 
