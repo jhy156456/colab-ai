@@ -22,7 +22,7 @@ import math
 import keras
 from keras.layers import Input, Dense, Conv2D, ZeroPadding2D, Flatten, Activation, add,MaxPooling2D,AveragePooling2D
 from keras.layers import BatchNormalization
-from keras.models import Model
+from keras.models import Model, load_model
 from keras import backend as K
 from keras.utils import np_utils
 from tensorflow.keras.optimizers import *
@@ -219,10 +219,12 @@ def main():
     es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
     # mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
     file_name = '{}epochs_{}batch_resnet50_model_{}.h5'.format(epochs, batch_size, data_directory.replace("/", "_"))
-    mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
+    mc = ModelCheckpoint(file_name, monitor='loss', mode='min', verbose=1, save_best_only=True)
 
     history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,callbacks=[es, mc])
-
+    loaded_model = load_model(file_name)
+    preds = loaded_model.predict(X_test)
+    # predicted = model.predict(X_test)
 
 
     # Save Model or creates a HDF5 file
@@ -230,14 +232,14 @@ def main():
     #     epochs, batch_size, data_directory.replace("/", "_")), overwrite=True)
 
 
-    # del model  # deletes the existing model
-    print("-")
-    predicted = model.predict(X_test)
-    print("------------------------------------------------------------------------------------------")
-    print(accuracy_score(Y_test, predicted))
-    print("------------------------------------------------------------------------------------------")
-    y_pred = np.argmax(predicted, axis=1)
+    y_pred = np.argmax(preds, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
+    print("------------------------------------------------------------------------------------------")
+    print(y_pred)
+    print(Y_test)
+    print(accuracy_score(Y_test, y_pred))
+    print("------------------------------------------------------------------------------------------")
+
 
 
     cm = confusion_matrix(Y_test, y_pred)
@@ -269,7 +271,7 @@ def main():
 
     f_output = open(args.output, 'a')
     f_output.write('=======\n')
-    f_output.write('{}epochs_{}batch_cnn\n'.format(
+    f_output.write('chart {}epochs_{}batch_resnet\n'.format(
         epochs, batch_size))
     f_output.write('TN: {}\n'.format(tn))
     f_output.write('FN: {}\n'.format(fn))
@@ -353,7 +355,7 @@ def main():
 
 
     # print(history.history.keys())
-    plot_acc_loss_epoch(history)
+    # plot_acc_loss_epoch(history)
     # plot_roc(y_pred, Y_test)
 
 if __name__ == "__main__":

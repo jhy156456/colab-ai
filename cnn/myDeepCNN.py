@@ -1,6 +1,8 @@
 import os
 
 import tensorflow as tf
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.models import load_model
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -137,91 +139,26 @@ def main():
 
     model.compile(optimizer=Adam(learning_rate=1.0e-4),
                   loss='categorical_crossentropy', metrics=['accuracy'])
-
+    es = EarlyStopping(monitor='accuracy', mode='max', verbose=1, patience=10)
+    # mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
+    file_name = '{}epochs_{}batch_resnet50_model_{}.h5'.format(epochs, batch_size, data_directory.replace("/", "_"))
+    mc = ModelCheckpoint(file_name, monitor='loss', mode='min', verbose=1, save_best_only=True)
     # Fit the model
-    model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs)
+    model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,callbacks=[es, mc])
 
-    # Save Model or creates a HDF5 file
-    model.save('{}epochs_{}batch_cnn_model_{}.h5'.format(
-        epochs, batch_size, data_directory.replace("/", "_")), overwrite=True)
+
+    loaded_model = load_model(file_name)
+    predicted = loaded_model.predict(X_test)
     # del model  # deletes the existing model
-    predicted = model.predict(X_test)
+    # predicted = model.predict(X_test)
 
-    ##############################################실제 데이터를 예측해본다##############################################
-    ####################################################################################################################
-    ####################################################################################################################
-    ####################################################################################################################
-
-
-    # stock_code = "272210.KS"
-    # day = "5"
-    # dimension = "100"
-    # useVolumne = True
-    # seq_len = 5
-    # import matplotlib.pyplot as plt
-    # import matplotlib.dates as mdates
-    # from mplfinance.original_flavor import candlestick2_ochl, volume_overlay
-    #
-    # df = pd.read_csv('./stockdatas/',stock_code,'_training.csv')
-    # df.reset_index(inplace=True)
-    # df = df.iloc[-5:]
-    # #         subprocess.call(
-    # #             f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_training.csv -t training -d {dimension} -v {use_volume}',
-    # #             shell=True)
-    # my_dpi = 96
-    # value = dimension / my_dpi
-    # fig = plt.figure(figsize=(value,
-    #                           value), dpi=my_dpi)
-    # # ax1 = fig.add_subplot(1, 1, 1)
-    # # ax1 = fig.subplot2_grid(gs[0])
-    # top_axes = plt.subplot2grid((4, 4), (0, 0), rowspan=3, colspan=4)
-    # bottom_axes = plt.subplot2grid((4, 4), (3, 0), rowspan=1, colspan=4, sharex=top_axes)
-    #
-    # candlestick2_ochl(top_axes, df['Open'], df['Close'], df['High'], df['Low'],
-    #                   width=1, colorup='#77d879', colordown='#db3f3f')
-    # top_axes.grid(False)
-    # top_axes.set_xticklabels([])
-    # top_axes.set_yticklabels([])
-    # top_axes.xaxis.set_visible(False)
-    # top_axes.yaxis.set_visible(False)
-    # top_axes.axis('off')
-    #
-    # # create the second axis for the volume bar-plot
-    # # Add a seconds axis for the volume overlay
-    # # ax2 = ax1.twinx()
-    #
-    # # ax2 = fig.add_subplot(gs[1])
-    # # ax2 = ax1.twinx()
-    #
-    # # Plot the volume overlay
-    # bc = volume_overlay(bottom_axes, df['Open'], df['Close'], df['Volume'],
-    #                     colorup='#77d879', colordown='#db3f3f', alpha=0.5, width=1)
-    # bottom_axes.add_collection(bc)
-    # bottom_axes.grid(False)
-    # bottom_axes.set_xticklabels([])
-    # bottom_axes.set_yticklabels([])
-    # bottom_axes.xaxis.set_visible(False)
-    # bottom_axes.yaxis.set_visible(False)
-    # bottom_axes.axis('off')
-    #
-    #
-    # fig.show()
-    # # Alpha 채널 없애기 위한.
-    # # from PIL import Image
-    # # img = Image.open(pngfile)
-    # # img = img.convert('RGB')
-    # # img.save(pngfile)
-
-
-    ####################################################################################################################
-    ####################################################################################################################
-    ####################################################################################################################
-    ####################################################################################################################
     print("predicted.shape : ",predicted.shape)
     print("Y_test.shape : ", Y_test.shape)
     y_pred = np.argmax(predicted, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
     print("------------------------------------------------------------------------------------------")
+    print(y_pred)
+    print(Y_test)
     print(accuracy_score(Y_test, y_pred))
     print("------------------------------------------------------------------------------------------")
     cm = confusion_matrix(Y_test, y_pred)

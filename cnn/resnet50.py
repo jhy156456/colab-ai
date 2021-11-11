@@ -247,7 +247,7 @@ def main():
     training_end_date = "2021-05-31"
     testing_start_date = "2021-06-01"
     testing_end_date = "2021-12-31"
-    seq_len = 20
+    seq_len = 30
     # epochs = 150
 
     # str_jong = "{}".format(i).split('.')[0]
@@ -351,8 +351,8 @@ def main():
     print("countTrain : ", len(newsTrainData))
     print("countTest : ", len(newsTestData))
 
-    newsTrainData= newsTrainData.sort_values(by=['label'])
-    newsTestData= newsTestData.sort_values(by=['label'])
+    newsTrainData = newsTrainData.sort_values(by=['label'])
+    newsTestData = newsTestData.sort_values(by=['label'])
 
     df_train_data = {
         'document': newsTrainData.document,
@@ -366,8 +366,6 @@ def main():
 
     train_data = pd.DataFrame(df_train_data, columns=['document', 'label'])
     test_data = pd.DataFrame(df_test_data, columns=['document', 'label'])
-
-
 
     train_data.drop_duplicates(subset=['document'], inplace=True)  # document 열에서 중복인 내용이 있다면 중복 제거
     train_data['document'] = train_data['document'].str.replace("[^ㄱ-ㅎㅏ-ㅣ가-힣 ]", "")  # 정규 표현식 수행
@@ -384,14 +382,6 @@ def main():
     print('<종목코드', str_jong, '> 전처리 후 테스트용 샘플의 개수 :', len(test_data))
 
     stopwords = ['의', '가', '이', '은', '들', '는', '좀', '잘', '걍', '과', '도', '를', '으로', '자', '에', '와', '한', '하다']
-
-
-
-
-
-
-
-
 
     # mecab = Mecab()
     #
@@ -426,10 +416,6 @@ def main():
     #
     # return
 
-
-
-
-
     print('<종목코드', str_jong, '> 훈련용 샘플 토큰화 중...')
     okt = Okt()
     news_X_train = []
@@ -446,8 +432,6 @@ def main():
         temp_X = [word for word in temp_X if not word in stopwords]  # 불용어 제거
         # temp_X = np.asarray(temp_X)
         news_X_test.append(temp_X)
-
-
 
     print('<종목코드', str_jong, '> 리뷰의 최대 길이 :', max(len(l) for l in news_X_train))
     print('<종목코드', str_jong, '> 리뷰의 평균 길이 :', sum(map(len, news_X_train)) / len(news_X_train))
@@ -574,7 +558,7 @@ def main():
     opt = Adam(lr=1e-05)
 
     # model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
-    model.compile(optimizer = tf.optimizers.RMSprop(lr=0.001), loss ='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=tf.optimizers.RMSprop(lr=0.001), loss='binary_crossentropy', metrics=['accuracy'])
     # train the model
     print("[INFO] training model...")
     news_X_train = np.asarray(news_X_train).astype(np.float32)
@@ -588,9 +572,11 @@ def main():
     # dataset = tf.data.Dataset.zip((dataset_12,dataset_label)).shuffle(3, reshuffle_each_iteration=True).batch(2)
 
     es = EarlyStopping(monitor='loss', mode='max', verbose=1, patience=10)
-    file_name = './{}epochs_{}batch_resnet+lstm_model_{}.h5'.format(epochs, batch_size, data_directory.replace("/", "_"))
-    mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-    model.fit(x = [news_X_train,X_train],y=Y_train, epochs=epochs,callbacks=[es, mc])
+    file_name = './{}epochs_{}batch_resnet+lstm_model_{}.h5'.format(epochs, batch_size, symbol)
+    # file_name = r'c:\temp\file1'
+    mc = ModelCheckpoint(file_name, monitor='loss', mode='min', verbose=1, save_best_only=True)
+
+    # model.fit(x=[news_X_train, X_train], y=Y_train, epochs=epochs, callbacks=[es,mc])
 
     print("------------------------------------------------------------------------------------------")
     print("X_train size : ", X_train.shape)
@@ -598,7 +584,6 @@ def main():
 
     print("X_test size : ", X_test.shape)
     print("Y_test size : ", Y_test.shape)
-
 
     print("news_X_train size : ", news_X_train.shape)
     # print(news_X_train[0])
@@ -608,17 +593,15 @@ def main():
     print("news_Y_test size : ", news_Y_test.shape)
     # make predictions on the testing data
     print("[INFO] predicting house prices...")
-    # loaded_model = load_model(file_name)
-    preds = model.predict([news_X_test,X_test])
+    loaded_model = load_model(file_name)
+    preds = loaded_model.predict([news_X_test, X_test])
     print("------------------------------------------------------------------------------------------")
     print("preds : ", preds)
     print("Y_test : ", Y_test)
 
-
-    y_preds = np.argmax(preds,axis=1)
-    Y_test = np.argmax(Y_test,axis=1)
+    y_preds = np.argmax(preds, axis=1)
+    Y_test = np.argmax(Y_test, axis=1)
     # allTest = np.argmax([news_Y_test,Y_test], axis=1)
-
 
     print(accuracy_score(Y_test, y_preds))
     print("------------------------------------------------------------------------------------------")
@@ -655,7 +638,7 @@ def main():
 
     f_output = open(args.output, 'a')
     f_output.write('=======\n')
-    f_output.write('resnet + news {}epochs_{}batch_cnn\n'.format(
+    f_output.write('news+chart {}epochs_{}batch_lstm+resnet\n'.format(
         epochs, batch_size))
     f_output.write('TN: {}\n'.format(tn))
     f_output.write('FN: {}\n'.format(fn))

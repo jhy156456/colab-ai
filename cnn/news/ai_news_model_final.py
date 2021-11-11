@@ -1,12 +1,18 @@
+import math
+from datetime import time, timedelta
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn.metrics
+from keras.models import load_model
 from konlpy.tag import Okt
 from pandas import DataFrame
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
+import time
 
+start_time = time.monotonic()
 str_jong = "272210.KS.xlsx"
 symbol = "272210.KS"
 df = pd.read_excel(str_jong, engine='openpyxl')
@@ -21,8 +27,9 @@ training_start_date = "2000-01-01"
 training_end_date = "2021-05-31"
 testing_start_date = "2021-06-01"
 testing_end_date = "2021-12-31"
-seq_len = 50
-epochs = 150
+seq_len = 30
+epochs = 100
+batch_size = 2
 
 # str_jong = "{}".format(i).split('.')[0]
 
@@ -252,7 +259,7 @@ print("-------------------------------------------------------------------------
 print('<종목코드', str_jong, '> 훈련용 빈샘플제거 후 개수', len(news_X_train))
 print('<종목코드', str_jong, '> 테스트용 빈샘플제거 후 개수', len(news_Y_train))
 
-max_len = 30
+max_len = 100
 
 
 def below_threshold_len(max_len, nested_list):
@@ -279,40 +286,59 @@ news_X_test = pad_sequences(news_X_test, maxlen=max_len)
 from tensorflow.keras.layers import Embedding, Dense, LSTM, Bidirectional
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
+
+# news_model = Sequential()
+# news_model.add(Embedding(vocab_size, 100))
+# news_model.add(Bidirectional(LSTM(128)))
+# # news_model.add(LSTM(128))
+# news_model.add(Dense(1, activation='sigmoid'))
 
 news_model = Sequential()
-news_model.add(Embedding(vocab_size, 100))
-news_model.add(Bidirectional(LSTM(128)))
+news_model.add(Embedding(vocab_size, 128))
+# news_model.add(Bidirectional(LSTM(256, return_sequences = True)))
+news_model.add(Bidirectional(LSTM(256)))
 # news_model.add(LSTM(128))
-news_model.add(Dense(1, activation='sigmoid'))
+# news_model.add(Dense(2, activation='sigmoid'))
+news_model.add(Dense(128, activation="relu"))
+news_model.add(Dense(2, activation="softmax"))
 
-file_name = 'best_model_' + "{}".format(i).split('.')[0] + '.h5'
 
-es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
+
+
+file_name = 'news{}epochs_{}batch_lstm_model_{}.h5'.format(epochs, batch_size, symbol)
+
+es = EarlyStopping(monitor='val_acc', mode='max', verbose=1, patience=7)
 # mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
-mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=False)
+mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
 news_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
 
 print('<종목코드', str_jong, '>데이터 학습 중...')
 
-
+from keras.utils import np_utils
 news_X_train = np.asarray(news_X_train).astype("float32")
 news_Y_train = np.asarray(news_Y_train).astype("float32")
+news_Y_train = np_utils.to_categorical(news_Y_train, 2)
 news_X_test = np.asarray(news_X_test).astype("float32")
 news_Y_test = np.asarray(news_Y_test).astype("float32")
+news_Y_test= np_utils.to_categorical(news_Y_test, 2)
 
 
-history = news_model.fit(news_X_train, news_Y_train, epochs=epochs, callbacks=[es, mc], batch_size=60,
+history = news_model.fit(news_X_train, news_Y_train, epochs=epochs, callbacks=[es, mc], batch_size=batch_size,
                          validation_split=0.2)
 # history = news_model.fit(news_X_train, news_Y_train, epochs=13, batch_size=60, validation_split=0.2)
 
-news_predicted = news_model.predict(news_X_test)
+loaded_model = load_model(file_name)
+news_predicted = loaded_model.predict(news_X_test)
 
-news_Y_pred = np.argmax(news_predicted, axis=1)
+news_predicted = np.argmax(news_predicted, axis=1)
+news_Y_test = np.argmax(news_Y_test, axis=1)
+# news_Y_test = np.argmax(news_Y_test, axis=1)
 print("------------------------------------------------------------------------------------------")
-print(sklearn.metrics.accuracy_score(news_Y_test, news_Y_pred))
+print(news_predicted)
+print(news_Y_test)
+print(sklearn.metrics.accuracy_score(news_Y_test, news_predicted))
 print("------------------------------------------------------------------------------------------")
 
 
@@ -331,5 +357,54 @@ def plot_acc_loss_epoch(history):
     plt.ylabel('loss')
     plt.show()
 
+
+
+cm = confusion_matrix(news_Y_test, news_predicted)
+report = classification_report(news_Y_test, news_predicted)
+tn = cm[0][0]
+fn = cm[1][0]
+tp = cm[1][1]
+fp = cm[0][1]
+if tp == 0:
+    tp = 1
+if tn == 0:
+    tn = 1
+if fp == 0:
+    fp = 1
+if fn == 0:
+    fn = 1
+TPR = float(tp) / (float(tp) + float(fn))
+FPR = float(fp) / (float(fp) + float(tn))
+accuracy = round((float(tp) + float(tn)) / (float(tp) +
+                                            float(fp) + float(fn) + float(tn)), 3)
+specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
+sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
+mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
+    (float(tp) + float(fp))
+    * (float(tp) + float(fn))
+    * (float(tn) + float(fp))
+    * (float(tn) + float(fn))
+), 3)
+
+f_output = open("outputresult.txt", 'a')
+f_output.write('=======\n')
+f_output.write('news {}epochs_{}batch_lstm\n'.format(
+    epochs, batch_size))
+f_output.write('TN: {}\n'.format(tn))
+f_output.write('FN: {}\n'.format(fn))
+f_output.write('TP: {}\n'.format(tp))
+f_output.write('FP: {}\n'.format(fp))
+f_output.write('TPR: {}\n'.format(TPR))
+f_output.write('FPR: {}\n'.format(FPR))
+f_output.write('accuracy: {}\n'.format(accuracy))
+f_output.write('specitivity: {}\n'.format(specitivity))
+f_output.write("sensitivity : {}\n".format(sensitivity))
+f_output.write("mcc : {}\n".format(mcc))
+f_output.write("{}".format(report))
+f_output.write('=======\n')
+f_output.close()
+end_time = time.monotonic()
+
+print("Duration : {}".format(timedelta(seconds=end_time - start_time)))
 # print(history.history.keys())
 # plot_acc_loss_epoch(history)

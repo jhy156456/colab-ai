@@ -1,0 +1,105 @@
+=======
+news 100epochs_2batch_lstm
+TN: 42
+FN: 39
+TP: 1
+FP: 1
+TPR: 0.025
+FPR: 0.023255813953488372
+accuracy: 0.518
+specitivity: 0.977
+sensitivity : 0.025
+mcc : 0.006
+              precision    recall  f1-score   support
+
+         0.0       0.52      1.00      0.68        42
+         1.0       0.00      0.00      0.00        39
+
+    accuracy                           0.52        81
+   macro avg       0.26      0.50      0.34        81
+weighted avg       0.27      0.52      0.35        81
+=======
+=======
+news 100epochs_2batch_lstm
+TN: 42
+FN: 39
+TP: 1
+FP: 1
+TPR: 0.025
+FPR: 0.023255813953488372
+accuracy: 0.518
+specitivity: 0.977
+sensitivity : 0.025
+mcc : 0.006
+              precision    recall  f1-score   support
+
+         0.0       0.52      1.00      0.68        42
+         1.0       0.00      0.00      0.00        39
+
+    accuracy                           0.52        81
+   macro avg       0.26      0.50      0.34        81
+weighted avg       0.27      0.52      0.35        81
+=======
+=======
+news 100epochs_2batch_lstm
+TN: 42
+FN: 39
+TP: 1
+FP: 1
+TPR: 0.025
+FPR: 0.023255813953488372
+accuracy: 0.518
+specitivity: 0.977
+sensitivity : 0.025
+mcc : 0.006
+              precision    recall  f1-score   support
+
+         0.0       0.52      1.00      0.68        42
+         1.0       0.00      0.00      0.00        39
+
+    accuracy                           0.52        81
+   macro avg       0.26      0.50      0.34        81
+weighted avg       0.27      0.52      0.35        81
+=======
+=======
+news 100epochs_2batch_lstm
+TN: 42
+FN: 39
+TP: 1
+FP: 1
+TPR: 0.025
+FPR: 0.023255813953488372
+accuracy: 0.518
+specitivity: 0.977
+sensitivity : 0.025
+mcc : 0.006
+              precision    recall  f1-score   support
+
+         0.0       0.52      1.00      0.68        42
+         1.0       0.00      0.00      0.00        39
+
+    accuracy                           0.52        81
+   macro avg       0.26      0.50      0.34        81
+weighted avg       0.27      0.52      0.35        81
+=======
+=======
+news 100epochs_2batch_lstm
+TN: 42
+FN: 39
+TP: 1
+FP: 1
+TPR: 0.025
+FPR: 0.023255813953488372
+accuracy: 0.518
+specitivity: 0.977
+sensitivity : 0.025
+mcc : 0.006
+              precision    recall  f1-score   support
+
+         0.0       0.52      1.00      0.68        42
+         1.0       0.00      0.00      0.00        39
+
+    accuracy                           0.52        81
+   macro avg       0.26      0.50      0.34        81
+weighted avg       0.27      0.52      0.35        81
+=======

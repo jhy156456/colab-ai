@@ -1,11 +1,11 @@
 import subprocess
 
 stock_code = "272210.KS"
-day = "20"
-image_dimension = "100"
-epochs = "25"
+day = "30"
+image_dimension = "200"
+epochs = "20"
 # epochs를 20으로 하면 오류가 나네..?
-batch_size = "8"
+batch_size = "1"
 try:
     #  read_csv :  stockdatas/BBNI.JK_testing.csv
 
@@ -32,13 +32,13 @@ try:
     # print(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ')
     # subprocess.call(f'python generatedata.py "dataset" "{day}_{image_dimension}/{stock_code}" "dataset_{stock_code}_{day}_{image_dimension}" ', shell=True)
 
-    # print(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
-    # subprocess.call(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"', shell=True)
+    print(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
+    subprocess.call(f'python myDeepCNN.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"', shell=True)
 
-    print(
-        f'python resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
-    subprocess.call(
-        f'python resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"',
-        shell=True)
+    # print(
+    #     f'python resnet50_copy.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"')
+    # subprocess.call(
+    #     f'python resnet50_copy.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"',
+    #     shell=True)
 except Exception as identifier:
     print(identifier)
