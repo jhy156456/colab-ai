@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn.metrics
+from keras.layers import Dropout, Flatten
 from keras.models import load_model
 from konlpy.tag import Okt
 from pandas import DataFrame
@@ -242,7 +243,6 @@ news_Y_test = np.array(test_data['label'])
 # print("------------------------------------------------------------------------------------------")
 
 
-
 drop_train = [index for index, sentence in enumerate(news_X_train) if len(sentence) < 1]
 
 # 빈 샘플들을 제거
@@ -296,15 +296,40 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 news_model = Sequential()
 news_model.add(Embedding(vocab_size, 128))
-# news_model.add(Bidirectional(LSTM(256, return_sequences = True)))
+# news_model.add(Bidirectional(LSTM(256)))
+# news_model.add(Dense(128, activation="relu"))
+# news_model.add(Dense(2, activation="softmax"))
+
+
 news_model.add(Bidirectional(LSTM(256)))
-# news_model.add(LSTM(128))
-# news_model.add(Dense(2, activation='sigmoid'))
-news_model.add(Dense(128, activation="relu"))
-news_model.add(Dense(2, activation="softmax"))
-
-
-
+news_model.add(Bidirectional(LSTM(256)))
+news_model.add(Bidirectional(LSTM(256)))
+news_model.add(Dropout(0.3))  # 과적합 방지용, 여기서는 dropout=0.3으로 설정
+news_model.add(Bidirectional(LSTM(128)))
+news_model.add(Bidirectional(LSTM(128)))
+news_model.add(Bidirectional(LSTM(128)))
+news_model.add(Dropout(0.3))
+news_model.add(Bidirectional(LSTM(64)))
+news_model.add(Bidirectional(LSTM(64)))
+news_model.add(Bidirectional(LSTM(64)))
+news_model.add(Dropout(0.3))
+news_model.add(Bidirectional(LSTM(32)))
+news_model.add(Bidirectional(LSTM(32)))
+news_model.add(Bidirectional(LSTM(32)))
+news_model.add(Dropout(0.3))
+news_model.add(Bidirectional(LSTM(16)))
+news_model.add(Bidirectional(LSTM(16)))
+news_model.add(Bidirectional(LSTM(16)))
+news_model.add(Dropout(0.3))
+news_model.add(Bidirectional(LSTM(8)))
+news_model.add(Bidirectional(LSTM(8)))
+news_model.add(Bidirectional(LSTM(8)))
+news_model.add(Dropout(0.3))
+news_model.add(Bidirectional(LSTM(4)))
+news_model.add(Bidirectional(LSTM(4)))
+news_model.add(Bidirectional(LSTM(4)))
+news_model.add(Flatten())
+news_model.add(Dense(2, activation='softmax'))  # 3가지 클래스로 분류하고, 다중분류이므로 softmax함수를 활용한다.
 
 file_name = 'news{}epochs_{}batch_lstm_model_{}.h5'.format(epochs, batch_size, symbol)
 
@@ -317,13 +342,13 @@ news_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['ac
 print('<종목코드', str_jong, '>데이터 학습 중...')
 
 from keras.utils import np_utils
+
 news_X_train = np.asarray(news_X_train).astype("float32")
 news_Y_train = np.asarray(news_Y_train).astype("float32")
 news_Y_train = np_utils.to_categorical(news_Y_train, 2)
 news_X_test = np.asarray(news_X_test).astype("float32")
 news_Y_test = np.asarray(news_Y_test).astype("float32")
-news_Y_test= np_utils.to_categorical(news_Y_test, 2)
-
+news_Y_test = np_utils.to_categorical(news_Y_test, 2)
 
 history = news_model.fit(news_X_train, news_Y_train, epochs=epochs, callbacks=[es, mc], batch_size=batch_size,
                          validation_split=0.2)
@@ -356,7 +381,6 @@ def plot_acc_loss_epoch(history):
     plt.xlabel('epoch')
     plt.ylabel('loss')
     plt.show()
-
 
 
 cm = confusion_matrix(news_Y_test, news_predicted)

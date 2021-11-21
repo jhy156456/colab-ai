@@ -2,7 +2,7 @@ import os
 import logging
 from collections import Counter
 
-from eunjeon import Mecab
+# from eunjeon import Mecab
 from sklearn.model_selection import train_test_split
 
 logging.disable(logging.WARNING)
@@ -554,11 +554,12 @@ def main():
     # compile the model using mean absolute percentage error as our loss,
     # implying that we seek to minimize the absolute percentage difference
     # between our price *predictions* and the *actual prices*
-    opt = Adam(lr=1e-3, decay=1e-3 / 200)
+    # opt = Adam(lr=1e-3, decay=1e-3 / 200)
     opt = Adam(lr=1e-05)
+    # opt = tf.optimizers.RMSprop(lr=0.001)
 
     # model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
-    model.compile(optimizer=tf.optimizers.RMSprop(lr=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
     # train the model
     print("[INFO] training model...")
     news_X_train = np.asarray(news_X_train).astype(np.float32)
@@ -571,12 +572,12 @@ def main():
 
     # dataset = tf.data.Dataset.zip((dataset_12,dataset_label)).shuffle(3, reshuffle_each_iteration=True).batch(2)
 
-    es = EarlyStopping(monitor='loss', mode='max', verbose=1, patience=10)
+    es = EarlyStopping(monitor='accuracy', mode='max', verbose=1, patience=4)
     file_name = './{}epochs_{}batch_resnet+lstm_model_{}.h5'.format(epochs, batch_size, symbol)
     # file_name = r'c:\temp\file1'
     mc = ModelCheckpoint(file_name, monitor='loss', mode='min', verbose=1, save_best_only=True)
 
-    # model.fit(x=[news_X_train, X_train], y=Y_train, epochs=epochs, callbacks=[es,mc])
+    model.fit(x=[news_X_train, X_train], y=Y_train, epochs=epochs, callbacks=[es,mc])
 
     print("------------------------------------------------------------------------------------------")
     print("X_train size : ", X_train.shape)
