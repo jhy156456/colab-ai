@@ -12,7 +12,7 @@ symbol = sys.argv[1]
 windows_length = sys.argv[2]
 dimension = sys.argv[3]
 
-training_start_date = "2010-01-01"
+training_start_date = "2018-01-01"
 training_end_date = "2021-05-31"
 
 testing_start_date = "2021-06-01"
@@ -45,12 +45,12 @@ try:
         #일로 들어오는듯
         # create label training
         print('{RED}\nCreate Label Training Data{END}'.format(**formatters))
-        subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_training.csv', shell=True)
+        subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_training.csv -n stockdatas/{symbol}_news_training.csv', shell=True)
         print('{GREEN}Create Label Training Data Done\n{END}'.format(**formatters))
     if onlytesting:
         # create label testing
         print('{RED}\nCreate Label Testing Data{END}'.format(**formatters))
-        subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_testing.csv', shell=True)
+        subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_testing.csv -n stockdatas/{symbol}_news_testing.csv', shell=True)
         print('{GREEN}Create Label Testing Data Done\n{END}'.format(**formatters))
 except Exception as identifier:
     print(identifier)

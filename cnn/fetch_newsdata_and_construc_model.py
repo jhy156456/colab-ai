@@ -410,7 +410,7 @@ mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
     * (float(tn) + float(fn))
 ), 3)
 
-f_output = open("outputresult.txt", 'a')
+f_output = open("news/outputresult.txt", 'a')
 f_output.write('=======\n')
 f_output.write('news {}epochs_{}batch_lstm\n'.format(
     epochs, batch_size))

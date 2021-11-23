@@ -118,15 +118,15 @@ def createLabel(fname, seq_len):
     filename = fname.split('/')
     # print("{} - {}".format(filename[0], filename[1][:-4]))
     removeOutput("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len))
-    df = pd.read_csv(fname, parse_dates=True, index_col=0)
-    df.fillna(0)
-    df.reset_index(inplace=True)
-    df['Date'] = df['Date'].map(mdates.date2num)
-    for i in range(0, len(df)):
+    stockdata_df = pd.read_csv(fname, parse_dates=True, index_col=0)
+    stockdata_df.fillna(0)
+    stockdata_df.reset_index(inplace=True)
+    stockdata_df['Date'] = stockdata_df['Date'].map(mdates.date2num)
+    for i in range(0, len(stockdata_df)):
         # 수정!!  int(seq_len)+1 ->  int(seq_len)
 
         # 1일~seq_len+1 일치 데이터프레임 획득
-        c = df.iloc[i:i + int(seq_len) + 1, :]
+        c = stockdata_df.iloc[i:i + int(seq_len) + 1, :]
         starting = 0
         endvalue = 0
         label = ""

@@ -82,6 +82,9 @@ def fetch_yahoo_data(ticker, start_date, end_date, fname, max_attempt, check_exi
             else:
                 break
 
+    ############ 뉴스영역 시작 ############
+    df[df['NEWS_DATE'] == stockDataDf.iloc[i]['Date']]
+    ############ 뉴스영역 끝 ############
 
 if __name__ == '__main__':
     main()
