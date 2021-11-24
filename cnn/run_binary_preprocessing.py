@@ -18,7 +18,9 @@ training_end_date = "2021-05-31"
 testing_start_date = "2021-06-01"
 testing_end_date = "2021-12-31"
 
-download_data = False
+download_data = True
+createLabel = False
+createOhlc2cs = False
 onlytesting = True
 onlytraining = True
 use_volume = True
@@ -41,37 +43,41 @@ except Exception as identifier:
     print(identifier)
 
 try:
-    if onlytraining:
-        #일로 들어오는듯
-        # create label training
-        print('{RED}\nCreate Label Training Data{END}'.format(**formatters))
-        subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_training.csv -n stockdatas/{symbol}_news_training.csv', shell=True)
-        print('{GREEN}Create Label Training Data Done\n{END}'.format(**formatters))
-    if onlytesting:
-        # create label testing
-        print('{RED}\nCreate Label Testing Data{END}'.format(**formatters))
-        subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_testing.csv -n stockdatas/{symbol}_news_testing.csv', shell=True)
-        print('{GREEN}Create Label Testing Data Done\n{END}'.format(**formatters))
+    if createLabel:
+        if onlytraining:
+            # create label training
+            print('{RED}\nCreate Label Training Data{END}'.format(**formatters))
+            subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_training.csv', shell=True)
+            print('{GREEN}Create Label Training Data Done\n{END}!'.format(**formatters))
+        if onlytesting:
+            # create label testing
+            print('{RED}\nCreate Label Testing Data{END}'.format(**formatters))
+            subprocess.call(f'python preproccess_binclass.py -m createLabel -l {windows_length} -i stockdatas/{symbol}_testing.csv', shell=True)
+            print('{GREEN}Create Label Testing Data Done\n{END}'.format(**formatters))
 except Exception as identifier:
     print(identifier)
 
+
 try:
-    if onlytraining:
-        # convert to candlestick chart training data
-        print('{RED}\nConvert Training Data to Candlestik{END}'.format(**formatters))
-        subprocess.call(
-            f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_training.csv -t training -d {dimension} -v {use_volume}', shell=True)
-        print('{GREEN}Convert Training Data to Candlestik Done\n{END}'.format(
-            **formatters))
-    if onlytesting:
-        # convert to candlestick chart testing data
-        print('{RED}\nConvert Testing Data to Candlestik{END}'.format(**formatters))
-        subprocess.call(
-            f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_testing.csv -t testing -d {dimension} -v {use_volume}', shell=True)
-        print('{GREEN}Convert Testing Data to Candlestik Done\n{END}'.format(
-            **formatters))
+    if createOhlc2cs:
+        if onlytraining:
+            # convert to candlestick chart training data
+            print('{RED}\nConvert Training Data to Candlestik{END}'.format(**formatters))
+            subprocess.call(
+                f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_training.csv -t training -d {dimension} -v {use_volume}', shell=True)
+            print('{GREEN}Convert Training Data to Candlestik Done\n{END}'.format(
+                **formatters))
+        if onlytesting:
+            # convert to candlestick chart testing data
+            print('{RED}\nConvert Testing Data to Candlestik{END}'.format(**formatters))
+            subprocess.call(
+                f'python preproccess_binclass.py -m ohlc2cs -l {windows_length} -i stockdatas/{symbol}_testing.csv -t testing -d {dimension} -v {use_volume}', shell=True)
+            print('{GREEN}Convert Testing Data to Candlestik Done\n{END}'.format(
+                **formatters))
 except Exception as identifier:
     print(identifier)
+
+
 
 try:
     if onlytraining:

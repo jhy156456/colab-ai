@@ -49,6 +49,7 @@ def main():
         ohlc2cs(args.input, args.seq_len, args.dataset_type,
                 args.dimension, args.use_volume)
     if args.mode == 'createLabel':
+        print("?????????")
         createLabel(args.input, args.seq_len)
     if args.mode == 'img2dt':
         image2dataset(args.input, args.label_file)
@@ -116,23 +117,32 @@ def createLabel(fname, seq_len):
     print("Creating label . . .")
     # remove existing label file
     filename = fname.split('/')
+
+    stock_code = filename[1][:9]
+    prefix = filename[1][10:].split('.')[0]
+
+    news_filename = "./" + filename[0] + "/" + stock_code + "_news_" + prefix + ".csv"
+
     # print("{} - {}".format(filename[0], filename[1][:-4]))
     removeOutput("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len))
     stockdata_df = pd.read_csv(fname, parse_dates=True, index_col=0)
+    newsdate_df = pd.read_csv(news_filename, parse_dates=True)
+    newsdate_df['label'] = 0
     stockdata_df.fillna(0)
     stockdata_df.reset_index(inplace=True)
-    stockdata_df['Date'] = stockdata_df['Date'].map(mdates.date2num)
+    # stockdata_df['Date'] = stockdata_df['Date'].map(mdates.date2num)
+    print(newsdate_df.head())
     for i in range(0, len(stockdata_df)):
         # 수정!!  int(seq_len)+1 ->  int(seq_len)
-
         # 1일~seq_len+1 일치 데이터프레임 획득
         c = stockdata_df.iloc[i:i + int(seq_len) + 1, :]
+
+
         starting = 0
         endvalue = 0
         label = ""
 
         if len(c) == int(seq_len) + 1:
-
             # study : iloc[-1] : # 마지막 행만
 
             # seq_len +1 일치 시초가, 종가
@@ -150,12 +160,25 @@ def createLabel(fname, seq_len):
                 # 하락
                 label = 0
 
+            # study
+            # 일치하는 열들 값 변경하기
+            # https://pongdangstory.tistory.com/518
+
+            newsdate_df.loc[(newsdate_df["Date"] == c["Date"].iloc[-2].strftime('%Y-%m-%d')),'label'] = label
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
         # else :
         #     print(c)
-
+    ############ 뉴스영역 시작 ############
+    if os.path.exists(news_filename):
+        os.remove(news_filename)
+    try:
+        print("fname : " + news_filename)
+        newsdate_df.to_csv(news_filename, index=False, encoding="utf-8-sig")
+    except Exception as e:
+        print("save error")
+    ############ 뉴스영역 끝 ############
     print("Create label finished.")
 
 
@@ -209,7 +232,8 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
             dohlc = np.hstack((np.reshape(x, (-1, 1)), ohlc))
 
             # 봉차트
-            candlestick2_ochl(axes[0], c['Open'], c['Close'], c['High'], c['Low'], width=0.5, colorup='r', colordown='b')
+            candlestick2_ochl(axes[0], c['Open'], c['Close'], c['High'], c['Low'], width=0.5, colorup='r',
+                              colordown='b')
             axes[0].grid(False)
             axes[0].set_xticklabels([])
             axes[0].set_yticklabels([])
@@ -230,7 +254,7 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
 
             plt.tight_layout()
             pngfile = 'dataset/{}_{}/{}/{}/{}-{}.png'.format(
-                            seq_len, dimension, symbol, dataset_type, fname[11:-4], i)
+                seq_len, dimension, symbol, dataset_type, fname[11:-4], i)
             fig.savefig(pngfile, pad_inches=0, transparent=False)
             plt.close(fig)
             # Alpha 채널 없애기 위한.
@@ -238,6 +262,8 @@ def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
             img = Image.open(pngfile)
             img = img.convert('RGB')
             img.save(pngfile)
+
+
 print("Converting olhc to candlestik finished.")
 
 # def ohlc2cs(fname, seq_len, dataset_type, dimension, use_volume):
