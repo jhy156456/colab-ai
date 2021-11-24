@@ -19,7 +19,7 @@ testing_start_date = "2021-06-01"
 testing_end_date = "2021-12-31"
 
 download_data = True
-createLabel = False
+createLabel = True
 createOhlc2cs = False
 onlytesting = True
 onlytraining = True

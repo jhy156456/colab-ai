@@ -118,9 +118,11 @@ def fetch_yahoo_data(ticker, start_date, end_date, fname, max_attempt, check_exi
     #
     # news_prefix_df = news_df.iloc[start_indexs[0]:end_indexs[len(end_indexs)-1],:]
 
-    news_prefix_df = pd.DataFrame(columns = ['Date' , 'Content', 'label'])
+    news_prefix_df = pd.DataFrame(columns = ['Date' , 'Content'])
     for i in range(0, len(dat)):
-        add_df = pd.DataFrame(news_df[news_df['Date']==dat.iloc[i]['Date']],columns=['Date','Content','label'])
+        add_df = pd.DataFrame(news_df[news_df['Date']==dat.iloc[i]['Date']],columns=['Date','Content'])
+        if len(add_df) ==0:
+            add_df = pd.DataFrame([ (dat.iloc[i]['Date'],"")],columns=['Date','Content'])
         news_prefix_df = news_prefix_df.append(add_df)
 
 
