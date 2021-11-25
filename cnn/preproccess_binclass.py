@@ -112,6 +112,16 @@ def image2dataset(input, label_file):
     print('Done')
 
 
+"""
+차트 이미지데이터에 레이블을 달고
+뉴스데이터에는 해당 날짜의 익일 종가에대한 레이블을 달아준다.
+0 : 3% 이상 상승 
+1 : 0~3% 상승
+2 : 0~-3% 하락
+3 : -3%이하 하락
+"""
+
+
 def createLabel(fname, seq_len):
     # python preprocess.py -m createLabel -l 20 -i stockdatas/EWT_training5.csv
     print("Creating label . . .")
@@ -126,22 +136,20 @@ def createLabel(fname, seq_len):
     # print("{} - {}".format(filename[0], filename[1][:-4]))
     removeOutput("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len))
     stockdata_df = pd.read_csv(fname, parse_dates=True, index_col=0)
-    newsdate_df = pd.read_csv(news_filename, parse_dates=True)
-    newsdate_df['label'] = 0
     stockdata_df.fillna(0)
     stockdata_df.reset_index(inplace=True)
     # stockdata_df['Date'] = stockdata_df['Date'].map(mdates.date2num)
-    print(newsdate_df.head())
+
+    newsdate_df = pd.read_csv(news_filename, parse_dates=True)
+    newsdate_df['label'] = -1
+    print(seq_len)
     for i in range(0, len(stockdata_df)):
         # 수정!!  int(seq_len)+1 ->  int(seq_len)
         # 1일~seq_len+1 일치 데이터프레임 획득
         c = stockdata_df.iloc[i:i + int(seq_len) + 1, :]
-
-
         starting = 0
         endvalue = 0
         label = ""
-
         if len(c) == int(seq_len) + 1:
             # study : iloc[-1] : # 마지막 행만
 
@@ -159,18 +167,32 @@ def createLabel(fname, seq_len):
             else:
                 # 하락
                 label = 0
-
-            # study
-            # 일치하는 열들 값 변경하기
-            # https://pongdangstory.tistory.com/518
-
-            newsdate_df.loc[(newsdate_df["Date"] == c["Date"].iloc[-2].strftime('%Y-%m-%d')),'label'] = label
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
         # else :
         #     print(c)
-    ############ 뉴스영역 시작 ############
+
+        ############ 뉴스영역 시작 ############
+        if len(stockdata_df) - 1 != i:
+            starting = stockdata_df["Close"].iloc[i]
+            endvalue = stockdata_df["Close"].iloc[i + 1]
+            # print("*******")
+            # print(f'endvalue {endvalue} - starting {starting}')
+            # print("*******")
+            tmp_rtn = endvalue / starting - 1
+            if tmp_rtn > 0:
+                # 상승
+                label = 1
+            else:
+                # 하락
+                label = 0
+            # study
+            # 일치하는 열들 값 변경하기
+            # https://pongdangstory.tistory.com/518
+            newsdate_df.loc[
+                (newsdate_df["Date"] == stockdata_df["Date"].iloc[i + 1].strftime('%Y-%m-%d')), 'label'] = label
+
     if os.path.exists(news_filename):
         os.remove(news_filename)
     try:

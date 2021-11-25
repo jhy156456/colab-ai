@@ -3,10 +3,12 @@ import logging
 
 logging.disable(logging.WARNING)
 import tensorflow as tf
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import warnings
+
 warnings.filterwarnings(action='ignore')
 # config = tf.ConfigProto()
 config = tf.compat.v1.ConfigProto()
@@ -20,7 +22,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import math
 
 import keras
-from keras.layers import Input, Dense, Conv2D, ZeroPadding2D, Flatten, Activation, add,MaxPooling2D,AveragePooling2D
+from keras.layers import Input, Dense, Conv2D, ZeroPadding2D, Flatten, Activation, add, MaxPooling2D, AveragePooling2D
 from keras.layers import BatchNormalization
 from keras.models import Model, load_model
 from keras import backend as K
@@ -34,8 +36,6 @@ import time
 from datetime import timedelta
 from utils.dataset import dataset
 from fetch_newsdata_and_construct_model import fetch_newsdate_and_construct_model
-
-
 
 
 def main():
@@ -68,12 +68,8 @@ def main():
     data_directory = args.input
     period_name = data_directory.split('/')
 
-
-
-
-
-    fetch_newsdate_and_construct_model(seq_len=30,epochs=epochs,batch_size=batch_size,symbol="055550.KS")
-
+    fetch_newsdate_and_construct_model(seq_len=30, epochs=epochs, batch_size=batch_size, symbol="055550.KS",
+                                       output_filename = args.output,isMultiInput=False)
 
     return
     ################################# concate~fit ##################################
@@ -113,18 +109,8 @@ def main():
     # file_name = r'c:\temp\file1'
     mc = ModelCheckpoint(file_name, monitor='loss', mode='min', verbose=1, save_best_only=True)
 
-    model.fit(x=[news_X_train, X_train], y=Y_train, epochs=epochs, callbacks=[es,mc])
+    model.fit(x=[news_X_train, X_train], y=Y_train, epochs=epochs, callbacks=[es, mc])
     ################################# concate~fit ##################################
-
-
-
-
-
-
-
-
-
-
 
     cm = confusion_matrix(Y_test, y_pred)
     report = classification_report(Y_test, y_pred)

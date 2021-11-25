@@ -1,3 +1,7 @@
+import math
+import time
+from datetime import timedelta
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -5,19 +9,46 @@ import sklearn.metrics
 from keras.layers import Dropout, Flatten
 from keras.models import load_model
 from konlpy.tag import Okt
+from sklearn.metrics import classification_report
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 
-def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
-
-
+def fetch_newsdate_and_construct_model(seq_len, epochs, batch_size, symbol, output_filename, isMultiInput):
+    start_time = time.monotonic()
     training_filename = "./stockdatas/" + symbol + "_news_training.csv"
-
     testing_filename = "./stockdatas/" + symbol + "_news_testing.csv"
-
     news_train_data = pd.read_csv(training_filename)
     news_test_data = pd.read_csv(testing_filename)
+
+    news_sequence_train_data = pd.DataFrame(columns=['Content', 'label'])
+    news_sequence_test_data = pd.DataFrame(columns=['Content', 'label'])
+    print(seq_len)
+    if not isMultiInput:
+        for i in range(0, len(news_train_data)):
+            c = news_train_data.iloc[i:i + int(seq_len) + 1, :]
+            if len(c) == int(seq_len) + 1:
+                series_to_string = ' '.join(c["Content"].apply(str))
+                series_to_string = series_to_string.replace('nan','')
+                label = c["label"].iloc[-1]
+                news_sequence_train_data = news_sequence_train_data.append(
+                    pd.DataFrame([{'Content':series_to_string, 'label':label}]))
+
+        for i in range(0, len(news_test_data)):
+            c = news_test_data.iloc[i:i + int(seq_len) + 1, :]
+            if len(c) == int(seq_len) + 1:
+                series_to_string = ' '.join(c["Content"].apply(str))
+                series_to_string = series_to_string.replace('nan', '')
+                label = c["label"].iloc[-1]
+                news_sequence_test_data = news_sequence_test_data.append(
+                    pd.DataFrame([(series_to_string, label)], columns=['Content', 'label']), ignore_index=True)
+
+    print("------------------------------")
+    print("news train size : ", len(news_sequence_train_data))
+    print("------------------------------")
+    print("news train size : ", len(news_sequence_test_data))
+    print("------------------------------")
+
 
 
     df_train_data = {
@@ -79,6 +110,7 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
 
     # fit_on_texts : 문자 데이터를 입력받아서 리스트의 형태로 변환합니다.
     tokenizer.fit_on_texts(news_X_train)
+    # '단어' : 정수 형태로 반환한다.
     print(tokenizer.word_index)
 
     threshold = 3
@@ -121,14 +153,17 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
     news_X_train = tokenizer.texts_to_sequences(news_X_train)
     news_Y_train = np.array(train_data['label'])
 
+    print("뉴스 훈련 사이즈 : ",len(news_X_train))
+
     news_X_test = tokenizer.texts_to_sequences(news_X_test)
+
+    print("뉴스 테스트 사이즈 : ", len(news_X_test))
     news_Y_test = np.array(test_data['label'])
 
     # print("------------------------------------------------------------------------------------------")
     # print("texts_to_sequences")
     # print(news_X_train)
     # print("------------------------------------------------------------------------------------------")
-
 
     drop_train = [index for index, sentence in enumerate(news_X_train) if len(sentence) < 1]
 
@@ -148,7 +183,6 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
 
     max_len = 100
 
-
     def below_threshold_len(max_len, nested_list):
         cnt = 0
         for s in nested_list:
@@ -156,11 +190,13 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
                 cnt = cnt + 1
         print('<종목코드', symbol, '> 전체 샘플 중 길이가 %s 이하인 샘플의 비율: %s' % (max_len, (cnt / len(nested_list)) * 100))
 
-
     # below_threshold_len(max_len, news_X_train)
 
     # study
     # 서로 다른 개수의 단어로 이루어진 문장을 같은 길이로 만들어주기 위해 패딩을 사용할 수 있습니다.
+    # 데이터가 maxlen 보다 길면 데이터를 자름
+    # pre : 데이터 앞에 0으로 채움
+    # post : 데이터 뒤에 0으로 채움
     # 패딩을 사용하기 위해서는 tensorflow.keras.preprocessing.sequence 모듈의 pad_sequences 함수를 사용합니다.
     # https://codetorial.net/tensorflow/natural_language_processing_in_tensorflow_01.html
     news_X_train = pad_sequences(news_X_train, maxlen=max_len)
@@ -182,45 +218,42 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
     # news_model.add(Dense(1, activation='sigmoid'))
 
     news_model = Sequential()
+    # embedding : (input_dim = num_words(데이터 갯수))
     news_model.add(Embedding(vocab_size, 128))
-    # news_model.add(Bidirectional(LSTM(256)))
-    # news_model.add(Dense(128, activation="relu"))
-    # news_model.add(Dense(2, activation="softmax"))
+    news_model.add(Bidirectional(LSTM(256)))
+    news_model.add(Dense(128, activation="relu"))
+    news_model.add(Dense(2, activation="softmax"))
 
-
-    news_model.add(Bidirectional(LSTM(256)))
-    news_model.add(Bidirectional(LSTM(256)))
-    news_model.add(Bidirectional(LSTM(256)))
-    news_model.add(Dropout(0.3))  # 과적합 방지용, 여기서는 dropout=0.3으로 설정
-    news_model.add(Bidirectional(LSTM(128)))
-    news_model.add(Bidirectional(LSTM(128)))
-    news_model.add(Bidirectional(LSTM(128)))
-    news_model.add(Dropout(0.3))
-    news_model.add(Bidirectional(LSTM(64)))
-    news_model.add(Bidirectional(LSTM(64)))
-    news_model.add(Bidirectional(LSTM(64)))
-    news_model.add(Dropout(0.3))
-    news_model.add(Bidirectional(LSTM(32)))
-    news_model.add(Bidirectional(LSTM(32)))
-    news_model.add(Bidirectional(LSTM(32)))
-    news_model.add(Dropout(0.3))
-    news_model.add(Bidirectional(LSTM(16)))
-    news_model.add(Bidirectional(LSTM(16)))
-    news_model.add(Bidirectional(LSTM(16)))
-    news_model.add(Dropout(0.3))
-    news_model.add(Bidirectional(LSTM(8)))
-    news_model.add(Bidirectional(LSTM(8)))
-    news_model.add(Bidirectional(LSTM(8)))
-    news_model.add(Dropout(0.3))
-    news_model.add(Bidirectional(LSTM(4)))
-    news_model.add(Bidirectional(LSTM(4)))
-    news_model.add(Bidirectional(LSTM(4)))
-    news_model.add(Flatten())
-    news_model.add(Dense(2, activation='softmax'))  # 3가지 클래스로 분류하고, 다중분류이므로 softmax함수를 활용한다.
+    #
+    # news_model.add(Bidirectional(LSTM(128)))
+    # news_model.add(Bidirectional(LSTM(128)))
+    # news_model.add(Bidirectional(LSTM(128)))
+    # news_model.add(Dropout(0.3))
+    # news_model.add(Bidirectional(LSTM(64)))
+    # news_model.add(Bidirectional(LSTM(64)))
+    # news_model.add(Bidirectional(LSTM(64)))
+    # news_model.add(Dropout(0.3))
+    # news_model.add(Bidirectional(LSTM(32)))
+    # news_model.add(Bidirectional(LSTM(32)))
+    # news_model.add(Bidirectional(LSTM(32)))
+    # news_model.add(Dropout(0.3))
+    # news_model.add(Bidirectional(LSTM(16)))
+    # news_model.add(Bidirectional(LSTM(16)))
+    # news_model.add(Bidirectional(LSTM(16)))
+    # news_model.add(Dropout(0.3))
+    # news_model.add(Bidirectional(LSTM(8)))
+    # news_model.add(Bidirectional(LSTM(8)))
+    # news_model.add(Bidirectional(LSTM(8)))
+    # news_model.add(Dropout(0.3))
+    # news_model.add(Bidirectional(LSTM(4)))
+    # news_model.add(Bidirectional(LSTM(4)))
+    # news_model.add(Bidirectional(LSTM(4)))
+    # news_model.add(Flatten())
+    # news_model.add(Dense(2, activation='softmax'))  # 3가지 클래스로 분류하고, 다중분류이므로 softmax함수를 활용한다.
 
     file_name = 'news{}epochs_{}batch_lstm_model_{}.h5'.format(epochs, batch_size, symbol)
 
-    es = EarlyStopping(monitor='val_acc', mode='max', verbose=1, patience=7)
+    es = EarlyStopping(monitor='val_acc', mode='max', verbose=1, patience=10)
     # mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
     mc = ModelCheckpoint(file_name, monitor='val_acc', mode='max', verbose=1, save_best_only=True)
 
@@ -239,6 +272,15 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
 
     history = news_model.fit(news_X_train, news_Y_train, epochs=epochs, callbacks=[es, mc], batch_size=batch_size,
                              validation_split=0.2)
+
+    """
+    imdb.data_load()의 파라미터로 num_words를 사용하면 이 데이터에서 등장 빈도 순위로 몇 번째에 해당하는 단어까지를 사용할 것인지를 의미합니다.
+    https://wikidocs.net/24586
+    hist_dict = history.history
+    hist_dict.keys()
+    >> dict_keys(['loss','acc',..])
+    https://www.youtube.com/watch?v=hR8Rvp-YNGg&ab_channel=%EC%9D%B4%EC%88%98%EC%95%88%EC%BB%B4%ED%93%A8%ED%84%B0%EC%97%B0%EA%B5%AC%EC%86%8C
+    """
     # history = news_model.fit(news_X_train, news_Y_train, epochs=13, batch_size=60, validation_split=0.2)
 
     loaded_model = load_model(file_name)
@@ -253,18 +295,50 @@ def fetch_newsdate_and_construct_model(seq_len,epochs, batch_size, symbol):
     print(sklearn.metrics.accuracy_score(news_Y_test, news_predicted))
     print("------------------------------------------------------------------------------------------")
 
+    if not isMultiInput:
+        cm = confusion_matrix(news_Y_test, news_predicted)
+        report = classification_report(news_Y_test, news_predicted)
+        tn = cm[0][0]
+        fn = cm[1][0]
+        tp = cm[1][1]
+        fp = cm[0][1]
+        if tp == 0:
+            tp = 1
+        if tn == 0:
+            tn = 1
+        if fp == 0:
+            fp = 1
+        if fn == 0:
+            fn = 1
+        TPR = float(tp) / (float(tp) + float(fn))
+        FPR = float(fp) / (float(fp) + float(tn))
+        accuracy = round((float(tp) + float(tn)) / (float(tp) +
+                                                    float(fp) + float(fn) + float(tn)), 3)
+        specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
+        sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
+        mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
+            (float(tp) + float(fp))
+            * (float(tp) + float(fn))
+            * (float(tn) + float(fp))
+            * (float(tn) + float(fn))
+        ), 3)
 
-def plot_acc_loss_epoch(history):
-    # https://snowdeer.github.io/machine-learning/2018/01/10/check-relation-between-epoch-and-loss-using-graph/
-    y_acc = history.history['acc']
-    y_loss = history.history['loss']
-
-    x_len = np.arange(len(y_loss))
-    plt.plot(x_len, y_acc, marker='.', c='red', label="accuracy")
-    plt.plot(x_len, y_loss, marker='.', c='blue', label="Loss")
-
-    plt.legend(loc='upper right')
-    plt.grid()
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
-    plt.show()
+        f_output = open(output_filename.output, 'a')
+        f_output.write('=======\n')
+        f_output.write('chart {}epochs_{}batch_resnet\n'.format(
+            epochs, batch_size))
+        f_output.write('TN: {}\n'.format(tn))
+        f_output.write('FN: {}\n'.format(fn))
+        f_output.write('TP: {}\n'.format(tp))
+        f_output.write('FP: {}\n'.format(fp))
+        f_output.write('TPR: {}\n'.format(TPR))
+        f_output.write('FPR: {}\n'.format(FPR))
+        f_output.write('accuracy: {}\n'.format(accuracy))
+        f_output.write('specitivity: {}\n'.format(specitivity))
+        f_output.write("sensitivity : {}\n".format(sensitivity))
+        f_output.write("mcc : {}\n".format(mcc))
+        f_output.write("{}".format(report))
+        f_output.write('=======\n')
+        f_output.close()
+        end_time = time.monotonic()
+        print("Duration : {}".format(timedelta(seconds=end_time - start_time)))

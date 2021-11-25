@@ -47,7 +47,7 @@ def build_dataset(data_directory, img_width):
 
     sample_count = len(y)
     train_size = sample_count
-    print("train size : {}".format(train_size))
+    print("size : {}".format(train_size))
     feature = X
     label = np_utils.to_categorical(y, nb_classes)
     return feature, label, nb_classes
@@ -149,7 +149,6 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
     x = Activation('relu')(x)
     # x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
-    # [배열 안은 필터의갯수]
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
@@ -173,7 +172,7 @@ def build_model(SHAPE, nb_classes, bn_axis, seed=None):
     # x = AveragePooling2D((7, 7), name='avg_pool')(x)
 
     x = Flatten()(x)
-    x = Dense(10, activation='relu', name='fc10')(x)
+    x = Dense(nb_classes, activation='softmax', name='fc10')(x)
 
     model = Model(input_layer, x)
 
