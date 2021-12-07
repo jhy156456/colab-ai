@@ -157,9 +157,6 @@ def createLabel(fname, seq_len):
             # starting = c["Open"].iloc[-1]
             starting = c["Close"].iloc[-2]
             endvalue = c["Close"].iloc[-1]
-            # print("*******")
-            # print(f'endvalue {endvalue} - starting {starting}')
-            # print("*******")
             tmp_rtn = endvalue / starting - 1
             if tmp_rtn > 0:
                 # 상승
@@ -177,9 +174,6 @@ def createLabel(fname, seq_len):
         if len(stockdata_df) - 1 != i:
             starting = stockdata_df["Close"].iloc[i]
             endvalue = stockdata_df["Close"].iloc[i + 1]
-            # print("*******")
-            # print(f'endvalue {endvalue} - starting {starting}')
-            # print("*******")
             tmp_rtn = endvalue / starting - 1
             if tmp_rtn > 0:
                 # 상승
