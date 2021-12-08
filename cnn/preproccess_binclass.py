@@ -59,6 +59,7 @@ def main():
 
 # 학습 데이터를 종목 코드별로 폴더로 옮기는 작업
 def image2dataset(input, label_file):
+    print("*****image2dataset****")
     # input : dataset/{windows_length}_{dimension}/{symbol}/testing
     # -lable_file :  ./label/{symbol}_testing_label_{windows_length}.txt'
     label_dict = {}
@@ -92,7 +93,7 @@ def image2dataset(input, label_file):
                               "{}/{}".format(path, new_name))
                     break
 
-    folders = ['1', '0']
+    folders = ['3','2','1', '0']
     for folder in folders:
         if not os.path.exists("{}/classes/{}".format(path, folder)):
             os.makedirs("{}/classes/{}".format(path, folder))
@@ -108,6 +109,12 @@ def image2dataset(input, label_file):
             elif label_dict[f] == "0":
                 move("{}/{}".format(path, filename),
                      "{}/classes/0/{}".format(path, filename))
+            elif label_dict[f] == "2":
+                move("{}/{}".format(path, filename),
+                     "{}/classes/2/{}".format(path, filename))
+            elif label_dict[f] == "3":
+                move("{}/{}".format(path, filename),
+                     "{}/classes/3/{}".format(path, filename))
 
     print('Done')
 
@@ -120,8 +127,6 @@ def image2dataset(input, label_file):
 2 : 0~-3% 하락
 3 : -3%이하 하락
 """
-
-
 def createLabel(fname, seq_len):
     # python preprocess.py -m createLabel -l 20 -i stockdatas/EWT_training5.csv
     print("Creating label . . .")
@@ -157,13 +162,18 @@ def createLabel(fname, seq_len):
             # starting = c["Open"].iloc[-1]
             starting = c["Close"].iloc[-2]
             endvalue = c["Close"].iloc[-1]
+            tmp_value = (endvalue - starting) / starting * 100
             tmp_rtn = endvalue / starting - 1
-            if tmp_rtn > 0:
+            if 3.0 <= tmp_value:
                 # 상승
-                label = 1
-            else:
-                # 하락
                 label = 0
+            elif 0.0 <= tmp_value <= 3.0:
+                # 하락
+                label = 1
+            elif 0.0 > tmp_value >= -3.0:
+                label = 2
+            else:
+                label = 3
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
@@ -174,13 +184,18 @@ def createLabel(fname, seq_len):
         if len(stockdata_df) - 1 != i:
             starting = stockdata_df["Close"].iloc[i]
             endvalue = stockdata_df["Close"].iloc[i + 1]
+            tmp_value = (endvalue - starting) / starting * 100
             tmp_rtn = endvalue / starting - 1
-            if tmp_rtn > 0:
+            if 3.0 <= tmp_value:
                 # 상승
-                label = 1
-            else:
-                # 하락
                 label = 0
+            elif 0.0 <= tmp_value <= 3.0:
+                # 하락
+                label = 1
+            elif 0.0 > tmp_value >= -3.0:
+                label = 2
+            else:
+                label = 3
             # study
             # 일치하는 열들 값 변경하기
             # https://pongdangstory.tistory.com/518
