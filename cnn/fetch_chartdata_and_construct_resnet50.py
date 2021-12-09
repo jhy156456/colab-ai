@@ -218,20 +218,18 @@ def main():
     print("------------------------------------------------------------------------------------------")
     print("number of classes : {}".format(nb_classes))
 
-
     model = build_model(SHAPE, nb_classes, bn_axis)
-
-
-
-
 
     model.compile(optimizer=Adam(learning_rate=1.0e-4),
                   loss='categorical_crossentropy', metrics=['accuracy'])
 
-    es = EarlyStopping(monitor='val_loss', mode='max', verbose=1, patience=10)
+    es = EarlyStopping(monitor='loss', mode='min', verbose=1, patience=5)
     # mc = ModelCheckpoint('best_model_samsung.h5', monitor='val_acc', mode='max', verbose=1, save_best_only=True)
     file_name = '{}epochs_{}batch_resnet50_model_{}.h5'.format(epochs, batch_size, data_directory.replace("/", "_"))
     mc = ModelCheckpoint(file_name, monitor='loss', mode='min', verbose=1, save_best_only=True)
+
+    print("X_train.shape", X_train.shape)
+    print("Y_train.shape", Y_train[0])
 
     history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[es, mc])
     loaded_model = load_model(file_name)
@@ -296,6 +294,7 @@ def main():
     f_output.close()
     end_time = time.monotonic()
     print("Duration : {}".format(timedelta(seconds=end_time - start_time)))
+
 
 if __name__ == "__main__":
     main()
