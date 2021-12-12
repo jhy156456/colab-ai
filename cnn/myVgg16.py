@@ -1,5 +1,7 @@
-import tensorflow as tf
 import os
+
+import tensorflow as tf
+
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 config = tf.ConfigProto()
@@ -7,17 +9,11 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 import math
-import json
-import sys
 
-import keras
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, Flatten, Activation, add
-from keras.layers import BatchNormalization,Layer,InputSpec
+from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Flatten
 from keras.models import Model
-from keras import initializers
 from keras import backend as K
 from keras.utils import np_utils
-from keras.optimizers import *
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report

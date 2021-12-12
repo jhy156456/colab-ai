@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@4.tcp.ngrok.io:12997" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="root@4.tcp.ngrok.io:12667">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/content/drive/MyDrive/Colab Notebooks/local_cnn" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@4.tcp.ngrok.io:12997">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/content/drive/MyDrive/Colab Notebooks/local_cnn" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@6.tcp.ngrok.io:16544">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/content/drive/MyDrive/Colab Notebooks" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@8.tcp.ngrok.io:11967">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/content/drive/MyDrive/Colab Notebooks/local_cnn" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@8.tcp.ngrok.io:15570">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/content/drive/MyDrive/Colab Notebooks/local_cnn" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@8.tcp.ngrok.io:19389">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/content/drive/MyDrive/Colab Notebooks/local_cnn" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

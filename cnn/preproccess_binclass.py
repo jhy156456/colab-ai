@@ -49,7 +49,6 @@ def main():
         ohlc2cs(args.input, args.seq_len, args.dataset_type,
                 args.dimension, args.use_volume)
     if args.mode == 'createLabel':
-        print("?????????")
         createLabel(args.input, args.seq_len)
     if args.mode == 'img2dt':
         image2dataset(args.input, args.label_file)
@@ -129,7 +128,7 @@ def image2dataset(input, label_file):
 """
 def createLabel(fname, seq_len):
     # python preprocess.py -m createLabel -l 20 -i stockdatas/EWT_training5.csv
-    print("Creating label . . .")
+    print("*****createLabel****")
     # remove existing label file
     filename = fname.split('/')
 
@@ -164,6 +163,13 @@ def createLabel(fname, seq_len):
             endvalue = c["Close"].iloc[-1]
             tmp_value = (endvalue - starting) / starting * 100
             tmp_rtn = endvalue / starting - 1
+
+            # if tmp_rtn > 0:
+            #     label = 1
+            # else :
+            #     label = 0
+
+
             if 3.0 <= tmp_value:
                 # 상승
                 label = 0
@@ -174,6 +180,9 @@ def createLabel(fname, seq_len):
                 label = 2
             else:
                 label = 3
+
+
+
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
@@ -186,6 +195,13 @@ def createLabel(fname, seq_len):
             endvalue = stockdata_df["Close"].iloc[i + 1]
             tmp_value = (endvalue - starting) / starting * 100
             tmp_rtn = endvalue / starting - 1
+
+            # if tmp_rtn > 0:
+            #     label = 1
+            # else:
+            #     label = 0
+
+
             if 3.0 <= tmp_value:
                 # 상승
                 label = 0
@@ -196,6 +212,8 @@ def createLabel(fname, seq_len):
                 label = 2
             else:
                 label = 3
+
+
             # study
             # 일치하는 열들 값 변경하기
             # https://pongdangstory.tistory.com/518

@@ -63,34 +63,32 @@ def fetch_tiingo_data(ticker, start_date, end_date, fname):
 
 
 """
-야후 데이터를 가져오고
-가져온 야후데이터의 날짜에 맞는 뉴스데이터를 가져와서 병합한다.
-이때 야후데이터의 날짜에는 있지만(일일 종가 데이터라 영업일에는 항상 있음) 뉴스데이터에는 해당날짜에 뉴스가 없을경우
-내용은 공백 
+- 야후 데이터를 가져오고 가져온 야후데이터의 날짜에 맞는 뉴스데이터를 가져와서 병합한다.
+이때 야후데이터의 날짜에는 있지만(일일 종가 데이터라 영업일에는 항상 있음) 
+뉴스데이터에는 해당날짜에 뉴스가 없을경우 내용은 공백
+- 뉴스데이터(엑셀파일)를 테스트, 트레이닝 데이터로 분리한다.  
 """
-
-
 def fetch_yahoo_data(ticker, start_date, end_date, fname, max_attempt, check_exist, prefix):
-    # if (os.path.exists(fname) == True) and check_exist:
-    #     print("file exist")
-    # else:
-    #     # remove exist file
-    #     if os.path.exists(fname):
-    #         os.remove(fname)
-    #     for attempt in range(max_attempt):
-    #         time.sleep(2)
-    #         try:
-    #             dat = data.get_data_yahoo(''.join("{}".format(
-    #                 ticker)),  start=start_date, end=end_date)
-    #             print("fname : " + fname)
-    #             dat.to_csv(fname)
-    #         except Exception as e:
-    #             if attempt < max_attempt - 1:
-    #                 print('Attempt {}: {}'.format(attempt + 1, str(e)))
-    #             else:
-    #                 raise
-    #         else:
-    #             break
+    if (os.path.exists(fname) == True) and check_exist:
+        print("file exist")
+    else:
+        # remove exist file
+        if os.path.exists(fname):
+            os.remove(fname)
+        for attempt in range(max_attempt):
+            time.sleep(2)
+            try:
+                dat = data.get_data_yahoo(''.join("{}".format(
+                    ticker)),  start=start_date, end=end_date)
+                print("fname : " + fname)
+                dat.to_csv(fname)
+            except Exception as e:
+                if attempt < max_attempt - 1:
+                    print('Attempt {}: {}'.format(attempt + 1, str(e)))
+                else:
+                    raise
+            else:
+                break
 
     dat = pd.read_csv(fname)
     ############ 뉴스영역 시작 ############
