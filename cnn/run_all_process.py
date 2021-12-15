@@ -1,12 +1,10 @@
 import subprocess
 
-import nvidia_smi
-
 stock_code = "055550.KS"
 # 코스닥KQ
 day = "30"
 image_dimension = "512"
-epochs = "6"
+epochs = "8"
 # epochs를 20으로 하면 오류가 나네..?
 batch_size = "2"
 try:
@@ -45,6 +43,6 @@ try:
     subprocess.call(
         f'python fetch_chartdata_and_construct_resnet50.py "-i" "dataset/dataset_{stock_code}_{day}_{image_dimension}" "-e" {epochs} "-d" {image_dimension} "-b" {batch_size} "-o" "outputresult.txt"',
         shell=True)
-    print(nvidia_smi)
+
 except Exception as identifier:
     print(identifier)
