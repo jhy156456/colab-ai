@@ -1,10 +1,10 @@
 import subprocess
 
-stock_code = "055550.KS"
+stock_code = "000880.KS"
 # 코스닥KQ
 day = "30"
 image_dimension = "512"
-epochs = "8"
+epochs = "30"
 # epochs를 20으로 하면 오류가 나네..?
 batch_size = "2"
 try:

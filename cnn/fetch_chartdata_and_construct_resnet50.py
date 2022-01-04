@@ -176,7 +176,7 @@ def build_resnet_model(SHAPE, nb_classes, bn_axis, seed=None):
     x = AveragePooling2D((7, 7), name='avg_pool')(x)
 
     x = Flatten()(x)
-    x = Dense(nb_classes, activation='sigmoid', name='fc10')(x)
+    x = Dense(nb_classes, activation='softmax', name='fc10')(x)
 
     # 클래스가 3개 이상일때 softmax?
     # 여러 개의 클래스 중 하나의 클래스를 고르는 Multi Classification 문제에는 Softmax를 사용한다.
@@ -241,10 +241,10 @@ def main():
     # vgg end
 
     # resnet50 start
-    # model_name = "resnet50"
-    # model = build_resnet_model(SHAPE, nb_classes, bn_axis)
-    # model.compile(optimizer=Adam(learning_rate=1.0e-4),
-    #               loss='categorical_crossentropy', metrics=['accuracy'])
+    model_name = "resnet50"
+    model = build_resnet_model(SHAPE, nb_classes, bn_axis)
+    model.compile(optimizer=Adam(learning_rate=1.0e-4),
+                  loss='categorical_crossentropy', metrics=['accuracy'])
     # resnet50 end
 
     # alexnet start
@@ -257,13 +257,13 @@ def main():
 
     # unet start
     # http://machinelearningkorea.com/2019/08/25/u-net-%EC%8B%A4%EC%A0%9C-%EA%B5%AC%ED%98%84-%EC%BD%94%EB%93%9C/
-    model_name = "unet"
-    model = build_unet((image_size, image_size, 3), nb_classes)
+    # model_name = "unet"
+    # model = build_unet((image_size, image_size, 3), nb_classes)
     # run_opts = tf.compat.v1.RunOptions(report_tensor_allocations_upon_oom = True)
     # model = build_unet_model2()
-    model.compile(optimizer=Adam(learning_rate=1.0e-4),
-                  loss='categorical_crossentropy',
-                  metrics=['accuracy'])
+    # model.compile(optimizer=Adam(learning_rate=1.0e-4),
+    #               loss='categorical_crossentropy',
+    #               metrics=['accuracy'])
     # unet end
 
     es = EarlyStopping(monitor='loss', mode='min', verbose=1, patience=5)
@@ -277,7 +277,7 @@ def main():
     print("X_test.shape", X_test.shape)
     print("Y_test.shape", Y_test.shape)
 
-    # history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[es, mc])
+    history = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=[es, mc])
     loaded_model = load_model(file_name)
     preds = loaded_model.predict(X_test)
     # predicted = model.predict(X_test)
@@ -288,53 +288,74 @@ def main():
 
     y_pred = np.argmax(preds, axis=1)
     Y_test = np.argmax(Y_test, axis=1)
+    ac_score = accuracy_score(Y_test, y_pred)
     print("------------------------------------------------------------------------------------------")
     print(y_pred)
     print(Y_test)
-    print(accuracy_score(Y_test, y_pred))
+    print(ac_score)
     print("------------------------------------------------------------------------------------------")
 
-    cm = confusion_matrix(Y_test, y_pred)
+    cnf_matrix = confusion_matrix(Y_test, y_pred)
     report = classification_report(Y_test, y_pred)
-    tn = cm[0][0]
-    fn = cm[1][0]
-    tp = cm[1][1]
-    fp = cm[0][1]
-    if tp == 0:
-        tp = 1
-    if tn == 0:
-        tn = 1
-    if fp == 0:
-        fp = 1
-    if fn == 0:
-        fn = 1
-    TPR = float(tp) / (float(tp) + float(fn))
-    FPR = float(fp) / (float(fp) + float(tn))
-    accuracy = round((float(tp) + float(tn)) / (float(tp) +
-                                                float(fp) + float(fn) + float(tn)), 3)
-    specitivity = round(float(tn) / (float(tn) + float(fp)), 3)
-    sensitivity = round(float(tp) / (float(tp) + float(fn)), 3)
-    mcc = round((float(tp) * float(tn) - float(fp) * float(fn)) / math.sqrt(
-        (float(tp) + float(fp))
-        * (float(tp) + float(fn))
-        * (float(tn) + float(fp))
-        * (float(tn) + float(fn))
-    ), 3)
+
+    FP = cnf_matrix.sum(axis=0) - np.diag(cnf_matrix)
+    FN = cnf_matrix.sum(axis=1) - np.diag(cnf_matrix)
+    TP = np.diag(cnf_matrix)
+    TN = cnf_matrix.sum() - (FP + FN + TP)
+
+    FP = FP.astype(float)
+    FN = FN.astype(float)
+    TP = TP.astype(float)
+    TN = TN.astype(float)
+
+    # Sensitivity, hit rate, recall, or true positive rate
+    # https://stackoverflow.com/questions/50666091/true-positive-rate-and-false-positive-rate-tpr-fpr-for-multi-class-data-in-py
+    TPR = TP / (TP + FN)
+    # Specificity or true negative rate
+    TNR = TN / (TN + FP)
+    # Precision or positive predictive value
+    PPV = TP / (TP + FP)
+    # Negative predictive value
+    NPV = TN / (TN + FN)
+    # Fall out or false positive rate
+    FPR = FP / (FP + TN)
+    # False negative rate
+    FNR = FN / (TP + FN)
+    # False discovery rate
+    FDR = FP / (TP + FP)
+    # Overall accuracy
+    ACC = (TP + TN) / (TP + FP + FN + TN)
+
+    print("tp",TP)
+    print("tn",TN)
+    print("fn",FN)
+    print("fp",FP)
+
+    specitivity = np.round(TN / (TN + FP), 3)
+    sensitivity = np.round(TP / (TP + FN), 3)
+    # mcc = np.round((TP * TN - FP * FN) / np.math.sqrt(
+    #     (TP + FP)
+    #     * (TP + FN)
+    #     * (TN + FP)
+    #     * (TN + FN)
+    # ), 3)
 
     f_output = open(args.output, 'a')
     f_output.write('=======\n')
-    f_output.write('chart {}epochs_{}batch_{}\n'.format(
-        epochs, batch_size, model_name))
-    f_output.write('TN: {}\n'.format(tn))
-    f_output.write('FN: {}\n'.format(fn))
-    f_output.write('TP: {}\n'.format(tp))
-    f_output.write('FP: {}\n'.format(fp))
+    f_output.write('chart {}epochs_{}batch_{}_{}class_model\n'.format(
+        epochs, batch_size, model_name,nb_classes))
+    f_output.write('TN: {}\n'.format(TN))
+    f_output.write('FN: {}\n'.format(FN))
+    f_output.write('TP: {}\n'.format(TP))
+    f_output.write('FP: {}\n'.format(FP))
     f_output.write('TPR: {}\n'.format(TPR))
     f_output.write('FPR: {}\n'.format(FPR))
-    f_output.write('accuracy: {}\n'.format(accuracy))
+    f_output.write('accuracy: {}\n'.format(ACC))
+    f_output.write('ac_score : {}\n'.format(ac_score))
+    f_output.write('real accuracy: {}\n'.format(accuracy_score(Y_test, y_pred)))
     f_output.write('specitivity: {}\n'.format(specitivity))
     f_output.write("sensitivity : {}\n".format(sensitivity))
-    f_output.write("mcc : {}\n".format(mcc))
+    # f_output.write("mcc : {}\n".format(mcc))
     f_output.write("{}".format(report))
     f_output.write('=======\n')
     f_output.close()
@@ -470,7 +491,7 @@ def build_alexnet_model(input_shape, num_classes):
     return model
 
 
-def conv_block(input, num_filters):
+def unet_conv_block(input, num_filters):
     x = Conv2D(num_filters, 3, padding="same")(input)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
@@ -503,7 +524,7 @@ def build_unet(input_shape, nb_classes):
     s3, p3 = encoder_block(p2, 256)
     s4, p4 = encoder_block(p3, 512)
 
-    b1 = conv_block(p4, 1024)
+    b1 = unet_conv_block(p4, 1024)
 
     d1 = decoder_block(b1, s4, 512)
     d2 = decoder_block(d1, s3, 256)
@@ -512,7 +533,8 @@ def build_unet(input_shape, nb_classes):
 
     # outputs = Conv2D(2, 1, padding="same", activation="relu")(d4)
 
-    x = Flatten()(d4)
+    x = Dropout(0.5)(d4)
+    x = Flatten()(x)
     x = Dense(nb_classes, activation='softmax', name='fc10')(x)
 
     model = Model(inputs, x, name="U-Net")
