@@ -49,7 +49,6 @@ def main():
         ohlc2cs(args.input, args.seq_len, args.dataset_type,
                 args.dimension, args.use_volume)
     if args.mode == 'createLabel':
-        print("?????????")
         createLabel(args.input, args.seq_len)
     if args.mode == 'img2dt':
         image2dataset(args.input, args.label_file)
@@ -129,7 +128,7 @@ def image2dataset(input, label_file):
 """
 def createLabel(fname, seq_len):
     # python preprocess.py -m createLabel -l 20 -i stockdatas/EWT_training5.csv
-    print("Creating label . . .")
+    print("*****createLabel****")
     # remove existing label file
     filename = fname.split('/')
 
@@ -145,8 +144,11 @@ def createLabel(fname, seq_len):
     stockdata_df.reset_index(inplace=True)
     # stockdata_df['Date'] = stockdata_df['Date'].map(mdates.date2num)
 
-    newsdate_df = pd.read_csv(news_filename, parse_dates=True)
-    newsdate_df['label'] = -1
+
+
+    # newsdate_df = pd.read_csv(news_filename, parse_dates=True)
+    # newsdate_df['label'] = -1
+
     print(seq_len)
     for i in range(0, len(stockdata_df)):
         # 수정!!  int(seq_len)+1 ->  int(seq_len)
@@ -164,6 +166,13 @@ def createLabel(fname, seq_len):
             endvalue = c["Close"].iloc[-1]
             tmp_value = (endvalue - starting) / starting * 100
             tmp_rtn = endvalue / starting - 1
+
+            # if tmp_rtn > 0:
+            #     label = 1
+            # else :
+            #     label = 0
+
+
             if 3.0 <= tmp_value:
                 # 상승
                 label = 0
@@ -174,6 +183,9 @@ def createLabel(fname, seq_len):
                 label = 2
             else:
                 label = 3
+
+
+
             with open("./label/{}_label_{}.txt".format(filename[1][:-4], seq_len), 'a') as the_file:
                 the_file.write("{}-{},{}".format(filename[1][:-4], i, label))
                 the_file.write("\n")
@@ -181,34 +193,43 @@ def createLabel(fname, seq_len):
         #     print(c)
 
         ############ 뉴스영역 시작 ############
-        if len(stockdata_df) - 1 != i:
-            starting = stockdata_df["Close"].iloc[i]
-            endvalue = stockdata_df["Close"].iloc[i + 1]
-            tmp_value = (endvalue - starting) / starting * 100
-            tmp_rtn = endvalue / starting - 1
-            if 3.0 <= tmp_value:
-                # 상승
-                label = 0
-            elif 0.0 <= tmp_value <= 3.0:
-                # 하락
-                label = 1
-            elif 0.0 > tmp_value >= -3.0:
-                label = 2
-            else:
-                label = 3
-            # study
-            # 일치하는 열들 값 변경하기
-            # https://pongdangstory.tistory.com/518
-            newsdate_df.loc[
-                (newsdate_df["Date"] == stockdata_df["Date"].iloc[i + 1].strftime('%Y-%m-%d')), 'label'] = label
-
-    if os.path.exists(news_filename):
-        os.remove(news_filename)
-    try:
-        print("fname : " + news_filename)
-        newsdate_df.to_csv(news_filename, index=False, encoding="utf-8-sig")
-    except Exception as e:
-        print("save error")
+    #     if len(stockdata_df) - 1 != i:
+    #         starting = stockdata_df["Close"].iloc[i]
+    #         endvalue = stockdata_df["Close"].iloc[i + 1]
+    #         tmp_value = (endvalue - starting) / starting * 100
+    #         tmp_rtn = endvalue / starting - 1
+    #
+    #         # if tmp_rtn > 0:
+    #         #     label = 1
+    #         # else:
+    #         #     label = 0
+    #
+    #
+    #         if 3.0 <= tmp_value:
+    #             # 상승
+    #             label = 0
+    #         elif 0.0 <= tmp_value <= 3.0:
+    #             # 하락
+    #             label = 1
+    #         elif 0.0 > tmp_value >= -3.0:
+    #             label = 2
+    #         else:
+    #             label = 3
+    #
+    #
+    #         # study
+    #         # 일치하는 열들 값 변경하기
+    #         # https://pongdangstory.tistory.com/518
+    #         newsdate_df.loc[
+    #             (newsdate_df["Date"] == stockdata_df["Date"].iloc[i + 1].strftime('%Y-%m-%d')), 'label'] = label
+    #
+    # if os.path.exists(news_filename):
+    #     os.remove(news_filename)
+    # try:
+    #     print("fname : " + news_filename)
+    #     newsdate_df.to_csv(news_filename, index=False, encoding="utf-8-sig")
+    # except Exception as e:
+    #     print("save error")
     ############ 뉴스영역 끝 ############
     print("Create label finished.")
 

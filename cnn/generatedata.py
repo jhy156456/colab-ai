@@ -21,17 +21,16 @@ def cre8outputdir(pathdir, targetdir):
         os.mkdir("{}/{}/train/1".format(pathdir, targetdir))
     if not os.path.exists("{}/{}/train/2".format(pathdir, targetdir)):
         os.mkdir("{}/{}/train/2".format(pathdir, targetdir))
-
     if not os.path.exists("{}/{}/train/3".format(pathdir, targetdir)):
         os.mkdir("{}/{}/train/3".format(pathdir, targetdir))
+
+
     if not os.path.exists("{}/{}/test/0".format(pathdir, targetdir)):
         os.mkdir("{}/{}/test/0".format(pathdir, targetdir))
-
     if not os.path.exists("{}/{}/test/1".format(pathdir, targetdir)):
         os.mkdir("{}/{}/test/1".format(pathdir, targetdir))
     if not os.path.exists("{}/{}/test/2".format(pathdir, targetdir)):
         os.mkdir("{}/{}/test/2".format(pathdir, targetdir))
-
     if not os.path.exists("{}/{}/test/3".format(pathdir, targetdir)):
         os.mkdir("{}/{}/test/3".format(pathdir, targetdir))
 
@@ -46,8 +45,8 @@ counttest = 0
 counttrain = 0
 # 원본 데이터 훼손 방지를 위해 별도로 분리한 파일을 학습하는 곳으로 복사한다.
 for root, dirs, files in os.walk("{}/{}".format(pathdir, origindir)):
-    # print("pathdir : " ,pathdir)
-    # print("origindir : ", origindir)
+    print("pathdir : " ,pathdir)
+    print("origindir : ", origindir)
     for file in files:
         # print("file : ",file)
 
